@@ -10,3 +10,34 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+## Downloading and Prepping Data
+
+```{r}
+credit <- read.csv("BankChurners.csv", stringsAsFactors = TRUE)
+summary(credit)
+
+credit$CLIENTNUM <- NULL
+credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_1 <- NULL
+credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_2 <- NULL
+
+```
+
+```{r}
+#Normalize the data
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+
+
+```{r}
+library(gmodels)
+library(caret)
+firstmodel <- glm(Attrition_Flag ~ ., 
+                    data = credit, family = "binomial")
+ summary(firstmodel)
+
+```
+
+
