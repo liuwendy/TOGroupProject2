@@ -1,6 +1,6 @@
 ---
 title: "TOGroupProject2"
-author: "Wendy Liu, Mack Khoo, Nelvin Vincent, "
+author: "Wendy Liu, Mack Khoo, Nelvin Vincent, TJ Striblen"
 date: "2022-10-27"
 output: html_document
 ---
