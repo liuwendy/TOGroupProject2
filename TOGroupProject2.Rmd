@@ -1,6 +1,6 @@
 ---
 title: "TOGroupProject2"
-author: "Wendy Liu"
+author: "Wendy Liu, Mack Khoo"
 date: "2022-10-27"
 output: html_document
 ---
