@@ -13,8 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 churners <- read.csv("BankChurners.csv")
 ```
 ## Problem
-You are asked to submit a small submission detailing your dataset, your business question and your preliminary efforts to clean and explore the dataset. 
-
 Dataset from: https://www.kaggle.com/datasets/sakshigoyal7/credit-card-customers
 This dataset consists of 10,000 customers mentioning their age, salary, marital_status, credit card limit, credit card category, etc.(nearly 18 features). The dataset only consists of 16.07% of customers who have churned.
 
@@ -41,7 +39,7 @@ normalize <- function(x) {
 }
 ```
 
-## Logisitic Model
+## Regression Model
 ```{r}
 library(gmodels)
 library(caret)
