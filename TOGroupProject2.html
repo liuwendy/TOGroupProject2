@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Wendy Liu, Mack Khoo, Nelvin Vincent, TJ Striblen" />
+<meta name="author" content="Wendy Liu, Mack Khoo, Nelvin Vincent, TJ Striblen, &amp; Nihal Kurki" />
 
 <meta name="date" content="2022-10-27" />
 
@@ -364,19 +364,15 @@ pre code {
 
 
 <h1 class="title toc-ignore">TOGroupProject2</h1>
-<h4 class="author">Wendy Liu, Mack Khoo, Nelvin Vincent, TJ
-Striblen</h4>
+<h4 class="author">Wendy Liu, Mack Khoo, Nelvin Vincent, TJ Striblen,
+&amp; Nihal Kurki</h4>
 <h4 class="date">2022-10-27</h4>
 
 </div>
 
 
-<pre class="r"><code>churners &lt;- read.csv(&quot;BankChurners.csv&quot;)</code></pre>
 <div id="problem" class="section level2">
 <h2>Problem</h2>
-<p>You are asked to submit a small submission detailing your dataset,
-your business question and your preliminary efforts to clean and explore
-the dataset.</p>
 <p>Dataset from: <a href="https://www.kaggle.com/datasets/sakshigoyal7/credit-card-customers" class="uri">https://www.kaggle.com/datasets/sakshigoyal7/credit-card-customers</a>
 This dataset consists of 10,000 customers mentioning their age, salary,
 marital_status, credit card limit, credit card category, etc.(nearly 18
@@ -396,84 +392,106 @@ clients often costs more than retaining existing ones.</p>
 </div>
 <div id="downloading-and-prepping-data" class="section level2">
 <h2>Downloading and Prepping Data</h2>
+<p>To clean up the data we wanted to first make multiple variables that
+are either unavailable to us prior to looking at customer attrition
+(such as the naive bayes classifier) or variables that have no use in
+predicting attrition (the client number). The data was able to factor
+the non-numerical variables such as “Attrition_Flag”, “Education_Level”,
+“Marital_Status”, “Income_Category”, &amp; “Card_Category” while the
+rest remained numeric and not as a factor. One thing we found
+interesting when exploring the dataset is that the attrited customer
+percentage is only around 16% which will make it harder to predict, but
+not at all impossible. Of course we will also need to normalize many of
+the numerical variables as Credit Limit and Dependent Count are on very
+different scales. And after an initial logistic regression model, we
+found that dependent count, income, and months with the bank or months
+of inactivity hold high correlations to credit card churn.</p>
 <pre class="r"><code>credit &lt;- read.csv(&quot;BankChurners.csv&quot;, stringsAsFactors = TRUE)
-summary(credit)</code></pre>
-<pre><code>##    CLIENTNUM                   Attrition_Flag  Customer_Age   Gender  
-##  Min.   :708082083   Attrited Customer:1627   Min.   :26.00   F:5358  
-##  1st Qu.:713036770   Existing Customer:8500   1st Qu.:41.00   M:4769  
-##  Median :717926358                            Median :46.00           
-##  Mean   :739177606                            Mean   :46.33           
-##  3rd Qu.:773143533                            3rd Qu.:52.00           
-##  Max.   :828343083                            Max.   :73.00           
-##                                                                       
-##  Dependent_count      Education_Level  Marital_Status       Income_Category
-##  Min.   :0.000   College      :1013   Divorced: 748   $120K +       : 727  
-##  1st Qu.:1.000   Doctorate    : 451   Married :4687   $40K - $60K   :1790  
-##  Median :2.000   Graduate     :3128   Single  :3943   $60K - $80K   :1402  
-##  Mean   :2.346   High School  :2013   Unknown : 749   $80K - $120K  :1535  
-##  3rd Qu.:3.000   Post-Graduate: 516                   Less than $40K:3561  
-##  Max.   :5.000   Uneducated   :1487                   Unknown       :1112  
-##                  Unknown      :1519                                        
-##   Card_Category  Months_on_book  Total_Relationship_Count
-##  Blue    :9436   Min.   :13.00   Min.   :1.000           
-##  Gold    : 116   1st Qu.:31.00   1st Qu.:3.000           
-##  Platinum:  20   Median :36.00   Median :4.000           
-##  Silver  : 555   Mean   :35.93   Mean   :3.813           
-##                  3rd Qu.:40.00   3rd Qu.:5.000           
-##                  Max.   :56.00   Max.   :6.000           
-##                                                          
-##  Months_Inactive_12_mon Contacts_Count_12_mon  Credit_Limit  
-##  Min.   :0.000          Min.   :0.000         Min.   : 1438  
-##  1st Qu.:2.000          1st Qu.:2.000         1st Qu.: 2555  
-##  Median :2.000          Median :2.000         Median : 4549  
-##  Mean   :2.341          Mean   :2.455         Mean   : 8632  
-##  3rd Qu.:3.000          3rd Qu.:3.000         3rd Qu.:11068  
-##  Max.   :6.000          Max.   :6.000         Max.   :34516  
-##                                                              
-##  Total_Revolving_Bal Avg_Open_To_Buy Total_Amt_Chng_Q4_Q1 Total_Trans_Amt
-##  Min.   :   0        Min.   :    3   Min.   :0.0000       Min.   :  510  
-##  1st Qu.: 359        1st Qu.: 1324   1st Qu.:0.6310       1st Qu.: 2156  
-##  Median :1276        Median : 3474   Median :0.7360       Median : 3899  
-##  Mean   :1163        Mean   : 7469   Mean   :0.7599       Mean   : 4404  
-##  3rd Qu.:1784        3rd Qu.: 9859   3rd Qu.:0.8590       3rd Qu.: 4741  
-##  Max.   :2517        Max.   :34516   Max.   :3.3970       Max.   :18484  
-##                                                                          
-##  Total_Trans_Ct   Total_Ct_Chng_Q4_Q1 Avg_Utilization_Ratio
-##  Min.   : 10.00   Min.   :0.0000      Min.   :0.0000       
-##  1st Qu.: 45.00   1st Qu.:0.5820      1st Qu.:0.0230       
-##  Median : 67.00   Median :0.7020      Median :0.1760       
-##  Mean   : 64.86   Mean   :0.7122      Mean   :0.2749       
-##  3rd Qu.: 81.00   3rd Qu.:0.8180      3rd Qu.:0.5030       
-##  Max.   :139.00   Max.   :3.7140      Max.   :0.9990       
-##                                                            
-##  Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_1
-##  Min.   :0.0000077                                                                                                                 
-##  1st Qu.:0.0000990                                                                                                                 
-##  Median :0.0001815                                                                                                                 
-##  Mean   :0.1599975                                                                                                                 
-##  3rd Qu.:0.0003373                                                                                                                 
-##  Max.   :0.9995800                                                                                                                 
-##                                                                                                                                    
-##  Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_2
-##  Min.   :0.00042                                                                                                                   
-##  1st Qu.:0.99966                                                                                                                   
-##  Median :0.99982                                                                                                                   
-##  Mean   :0.84000                                                                                                                   
-##  3rd Qu.:0.99990                                                                                                                   
-##  Max.   :0.99999                                                                                                                   
-## </code></pre>
-<pre class="r"><code>credit$CLIENTNUM &lt;- NULL
+
+credit$CLIENTNUM &lt;- NULL
 credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_1 &lt;- NULL
-credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_2 &lt;- NULL</code></pre>
+credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_2 &lt;- NULL
+
+credit$Attrition_Flag &lt;- factor(credit$Attrition_Flag, levels = c(&quot;Existing Customer&quot;, &quot;Attrited Customer&quot;), labels = c(0, 1))
+
+summary(credit)</code></pre>
+<pre><code>##  Attrition_Flag  Customer_Age   Gender   Dependent_count      Education_Level
+##  0:8500         Min.   :26.00   F:5358   Min.   :0.000   College      :1013  
+##  1:1627         1st Qu.:41.00   M:4769   1st Qu.:1.000   Doctorate    : 451  
+##                 Median :46.00            Median :2.000   Graduate     :3128  
+##                 Mean   :46.33            Mean   :2.346   High School  :2013  
+##                 3rd Qu.:52.00            3rd Qu.:3.000   Post-Graduate: 516  
+##                 Max.   :73.00            Max.   :5.000   Uneducated   :1487  
+##                                                          Unknown      :1519  
+##   Marital_Status       Income_Category  Card_Category  Months_on_book 
+##  Divorced: 748   $120K +       : 727   Blue    :9436   Min.   :13.00  
+##  Married :4687   $40K - $60K   :1790   Gold    : 116   1st Qu.:31.00  
+##  Single  :3943   $60K - $80K   :1402   Platinum:  20   Median :36.00  
+##  Unknown : 749   $80K - $120K  :1535   Silver  : 555   Mean   :35.93  
+##                  Less than $40K:3561                   3rd Qu.:40.00  
+##                  Unknown       :1112                   Max.   :56.00  
+##                                                                       
+##  Total_Relationship_Count Months_Inactive_12_mon Contacts_Count_12_mon
+##  Min.   :1.000            Min.   :0.000          Min.   :0.000        
+##  1st Qu.:3.000            1st Qu.:2.000          1st Qu.:2.000        
+##  Median :4.000            Median :2.000          Median :2.000        
+##  Mean   :3.813            Mean   :2.341          Mean   :2.455        
+##  3rd Qu.:5.000            3rd Qu.:3.000          3rd Qu.:3.000        
+##  Max.   :6.000            Max.   :6.000          Max.   :6.000        
+##                                                                       
+##   Credit_Limit   Total_Revolving_Bal Avg_Open_To_Buy Total_Amt_Chng_Q4_Q1
+##  Min.   : 1438   Min.   :   0        Min.   :    3   Min.   :0.0000      
+##  1st Qu.: 2555   1st Qu.: 359        1st Qu.: 1324   1st Qu.:0.6310      
+##  Median : 4549   Median :1276        Median : 3474   Median :0.7360      
+##  Mean   : 8632   Mean   :1163        Mean   : 7469   Mean   :0.7599      
+##  3rd Qu.:11068   3rd Qu.:1784        3rd Qu.: 9859   3rd Qu.:0.8590      
+##  Max.   :34516   Max.   :2517        Max.   :34516   Max.   :3.3970      
+##                                                                          
+##  Total_Trans_Amt Total_Trans_Ct   Total_Ct_Chng_Q4_Q1 Avg_Utilization_Ratio
+##  Min.   :  510   Min.   : 10.00   Min.   :0.0000      Min.   :0.0000       
+##  1st Qu.: 2156   1st Qu.: 45.00   1st Qu.:0.5820      1st Qu.:0.0230       
+##  Median : 3899   Median : 67.00   Median :0.7020      Median :0.1760       
+##  Mean   : 4404   Mean   : 64.86   Mean   :0.7122      Mean   :0.2749       
+##  3rd Qu.: 4741   3rd Qu.: 81.00   3rd Qu.:0.8180      3rd Qu.:0.5030       
+##  Max.   :18484   Max.   :139.00   Max.   :3.7140      Max.   :0.9990       
+## </code></pre>
+<pre class="r"><code>str(credit)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    10127 obs. of  20 variables:
+##  $ Attrition_Flag          : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ Customer_Age            : int  45 49 51 40 40 44 51 32 37 48 ...
+##  $ Gender                  : Factor w/ 2 levels &quot;F&quot;,&quot;M&quot;: 2 1 2 1 2 2 2 2 2 2 ...
+##  $ Dependent_count         : int  3 5 3 4 3 2 4 0 3 2 ...
+##  $ Education_Level         : Factor w/ 7 levels &quot;College&quot;,&quot;Doctorate&quot;,..: 4 3 3 4 6 3 7 4 6 3 ...
+##  $ Marital_Status          : Factor w/ 4 levels &quot;Divorced&quot;,&quot;Married&quot;,..: 2 3 2 4 2 2 2 4 3 3 ...
+##  $ Income_Category         : Factor w/ 6 levels &quot;$120K +&quot;,&quot;$40K - $60K&quot;,..: 3 5 4 5 3 2 1 3 3 4 ...
+##  $ Card_Category           : Factor w/ 4 levels &quot;Blue&quot;,&quot;Gold&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ Months_on_book          : int  39 44 36 34 21 36 46 27 36 36 ...
+##  $ Total_Relationship_Count: int  5 6 4 3 5 3 6 2 5 6 ...
+##  $ Months_Inactive_12_mon  : int  1 1 1 4 1 1 1 2 2 3 ...
+##  $ Contacts_Count_12_mon   : int  3 2 0 1 0 2 3 2 0 3 ...
+##  $ Credit_Limit            : num  12691 8256 3418 3313 4716 ...
+##  $ Total_Revolving_Bal     : int  777 864 0 2517 0 1247 2264 1396 2517 1677 ...
+##  $ Avg_Open_To_Buy         : num  11914 7392 3418 796 4716 ...
+##  $ Total_Amt_Chng_Q4_Q1    : num  1.33 1.54 2.59 1.41 2.17 ...
+##  $ Total_Trans_Amt         : int  1144 1291 1887 1171 816 1088 1330 1538 1350 1441 ...
+##  $ Total_Trans_Ct          : int  42 33 20 20 28 24 31 36 24 32 ...
+##  $ Total_Ct_Chng_Q4_Q1     : num  1.62 3.71 2.33 2.33 2.5 ...
+##  $ Avg_Utilization_Ratio   : num  0.061 0.105 0 0.76 0 0.311 0.066 0.048 0.113 0.144 ...</code></pre>
 </div>
 <div id="normalize-the-data" class="section level2">
 <h2>Normalize the data</h2>
 <pre class="r"><code>normalize &lt;- function(x) {
   return ((x - min(x)) / (max(x) - min(x)))
-}</code></pre>
+}
+
+creditmm &lt;- as.data.frame(model.matrix(~.-1,credit))
+set.seed(12345)
+credit_random &lt;- creditmm[sample(nrow(creditmm)),]
+
+credit_norm &lt;- as.data.frame(lapply(credit_random, normalize))</code></pre>
 </div>
-<div id="logisitic-model" class="section level2">
-<h2>Logisitic Model</h2>
+<div id="regression-model" class="section level2">
+<h2>Regression Model</h2>
 <pre class="r"><code>library(gmodels)
 library(caret)</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
@@ -487,43 +505,43 @@ library(caret)</code></pre>
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
-## -3.5351   0.0673   0.1703   0.3618   3.1157  
+## -3.1157  -0.3618  -0.1703  -0.0673   3.5351  
 ## 
 ## Coefficients: (1 not defined because of singularities)
 ##                                 Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)                   -6.723e+00  4.748e-01 -14.162  &lt; 2e-16 ***
-## Customer_Age                   6.131e-03  7.711e-03   0.795 0.426532    
-## GenderM                        8.938e-01  1.455e-01   6.142 8.16e-10 ***
-## Dependent_count               -1.358e-01  2.998e-02  -4.530 5.89e-06 ***
-## Education_LevelDoctorate      -3.689e-01  2.081e-01  -1.773 0.076218 .  
-## Education_LevelGraduate        5.798e-03  1.396e-01   0.042 0.966864    
-## Education_LevelHigh School    -1.026e-02  1.488e-01  -0.069 0.945016    
-## Education_LevelPost-Graduate  -3.112e-01  2.050e-01  -1.518 0.128952    
-## Education_LevelUneducated     -6.955e-02  1.573e-01  -0.442 0.658477    
-## Education_LevelUnknown        -1.329e-01  1.554e-01  -0.855 0.392310    
-## Marital_StatusMarried          4.994e-01  1.544e-01   3.234 0.001219 ** 
-## Marital_StatusSingle          -1.081e-01  1.549e-01  -0.698 0.485248    
-## Marital_StatusUnknown         -4.528e-02  1.962e-01  -0.231 0.817467    
-## Income_Category$40K - $60K     9.083e-01  2.026e-01   4.484 7.33e-06 ***
-## Income_Category$60K - $80K     6.405e-01  1.791e-01   3.576 0.000349 ***
-## Income_Category$80K - $120K    2.983e-01  1.663e-01   1.794 0.072811 .  
-## Income_CategoryLess than $40K  7.702e-01  2.190e-01   3.516 0.000438 ***
-## Income_CategoryUnknown         8.321e-01  2.322e-01   3.584 0.000338 ***
-## Card_CategoryGold             -1.066e+00  3.521e-01  -3.026 0.002475 ** 
-## Card_CategoryPlatinum         -9.816e-01  6.813e-01  -1.441 0.149654    
-## Card_CategorySilver           -4.502e-01  1.962e-01  -2.294 0.021778 *  
-## Months_on_book                 4.685e-03  7.673e-03   0.611 0.541484    
-## Total_Relationship_Count       4.493e-01  2.750e-02  16.338  &lt; 2e-16 ***
-## Months_Inactive_12_mon        -5.078e-01  3.793e-02 -13.387  &lt; 2e-16 ***
-## Contacts_Count_12_mon         -5.133e-01  3.655e-02 -14.044  &lt; 2e-16 ***
-## Credit_Limit                   1.971e-05  6.860e-06   2.873 0.004064 ** 
-## Total_Revolving_Bal            9.321e-04  7.207e-05  12.934  &lt; 2e-16 ***
+## (Intercept)                    6.723e+00  4.748e-01  14.162  &lt; 2e-16 ***
+## Customer_Age                  -6.131e-03  7.711e-03  -0.795 0.426532    
+## GenderM                       -8.938e-01  1.455e-01  -6.142 8.16e-10 ***
+## Dependent_count                1.358e-01  2.998e-02   4.530 5.89e-06 ***
+## Education_LevelDoctorate       3.689e-01  2.081e-01   1.773 0.076218 .  
+## Education_LevelGraduate       -5.798e-03  1.396e-01  -0.042 0.966864    
+## Education_LevelHigh School     1.026e-02  1.488e-01   0.069 0.945016    
+## Education_LevelPost-Graduate   3.112e-01  2.050e-01   1.518 0.128952    
+## Education_LevelUneducated      6.955e-02  1.573e-01   0.442 0.658477    
+## Education_LevelUnknown         1.329e-01  1.554e-01   0.855 0.392310    
+## Marital_StatusMarried         -4.994e-01  1.544e-01  -3.234 0.001219 ** 
+## Marital_StatusSingle           1.081e-01  1.549e-01   0.698 0.485248    
+## Marital_StatusUnknown          4.528e-02  1.962e-01   0.231 0.817467    
+## Income_Category$40K - $60K    -9.083e-01  2.026e-01  -4.484 7.33e-06 ***
+## Income_Category$60K - $80K    -6.405e-01  1.791e-01  -3.576 0.000349 ***
+## Income_Category$80K - $120K   -2.983e-01  1.663e-01  -1.794 0.072811 .  
+## Income_CategoryLess than $40K -7.702e-01  2.190e-01  -3.516 0.000438 ***
+## Income_CategoryUnknown        -8.321e-01  2.322e-01  -3.584 0.000338 ***
+## Card_CategoryGold              1.066e+00  3.521e-01   3.026 0.002475 ** 
+## Card_CategoryPlatinum          9.816e-01  6.813e-01   1.441 0.149654    
+## Card_CategorySilver            4.502e-01  1.962e-01   2.294 0.021778 *  
+## Months_on_book                -4.685e-03  7.673e-03  -0.611 0.541484    
+## Total_Relationship_Count      -4.493e-01  2.750e-02 -16.338  &lt; 2e-16 ***
+## Months_Inactive_12_mon         5.078e-01  3.793e-02  13.387  &lt; 2e-16 ***
+## Contacts_Count_12_mon          5.133e-01  3.655e-02  14.044  &lt; 2e-16 ***
+## Credit_Limit                  -1.971e-05  6.860e-06  -2.873 0.004064 ** 
+## Total_Revolving_Bal           -9.321e-04  7.207e-05 -12.934  &lt; 2e-16 ***
 ## Avg_Open_To_Buy                       NA         NA      NA       NA    
-## Total_Amt_Chng_Q4_Q1           4.262e-01  1.878e-01   2.269 0.023253 *  
-## Total_Trans_Amt               -4.855e-04  2.295e-05 -21.154  &lt; 2e-16 ***
-## Total_Trans_Ct                 1.192e-01  3.731e-03  31.944  &lt; 2e-16 ***
-## Total_Ct_Chng_Q4_Q1            2.798e+00  1.889e-01  14.813  &lt; 2e-16 ***
-## Avg_Utilization_Ratio          1.253e-01  2.470e-01   0.507 0.612020    
+## Total_Amt_Chng_Q4_Q1          -4.262e-01  1.878e-01  -2.269 0.023253 *  
+## Total_Trans_Amt                4.855e-04  2.295e-05  21.154  &lt; 2e-16 ***
+## Total_Trans_Ct                -1.192e-01  3.731e-03 -31.944  &lt; 2e-16 ***
+## Total_Ct_Chng_Q4_Q1           -2.798e+00  1.889e-01 -14.813  &lt; 2e-16 ***
+## Avg_Utilization_Ratio         -1.253e-01  2.470e-01  -0.507 0.612020    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
