@@ -1,9 +1,7 @@
 ---
 title: "TOGroupProject2"
 <<<<<<< HEAD
-author: "Wendy Liu, Mack Khoo, Nelvin Vincent, Nihal Kurki, & "
-=======
-author: "Wendy Liu, Mack Khoo, Nelvin Vincent, TJ Striblen"
+author: "Wendy Liu, Mack Khoo, Nelvin Vincent, TJ Striblen, & Nihal Kurki"
 >>>>>>> acd0fc37ee7e45d240d7e80d7cc99108b41b7c45
 date: "2022-10-27"
 output: html_document
@@ -26,9 +24,12 @@ Our group wants to predict which credit card customers are more likely to churn.
 
 ## Downloading and Prepping Data
 
+To clean up the data we wanted to first make multiple variables that are either unavailable to us prior to looking at customer attrition (such as the naive bayes classifier) or variables that have no use in predicting attrition (the client number). The data was able to factor the non-numerical variables such as "Attrition_Flag", "Education_Level", "Marital_Status", "Income_Category", & "Card_Category" while the rest remained numeric and not as a factor. One thing we found interesting when exploring the dataset is that the attrited customer percentage is only around 16% which will make it harder to predict, but not at all impossible. Of course we will also need to normalize many of the numerical variables as Credit Limit and Dependent Count are on very different scales. And after an initial logistic regression model, we found that dependent count, income, and months with the bank or months of inactivity hold high correlations to credit card churn.
+
 ```{r}
 credit <- read.csv("BankChurners.csv", stringsAsFactors = TRUE)
 summary(credit)
+str(credit)
 
 credit$CLIENTNUM <- NULL
 credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_1 <- NULL
