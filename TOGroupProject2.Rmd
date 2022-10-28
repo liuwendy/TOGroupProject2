@@ -8,10 +8,19 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 ```{r}
 churners <- read.csv("BankChurners.csv")
 ```
+## Problem
+You are asked to submit a small submission detailing your dataset, your business question and your preliminary efforts to clean and explore the dataset. 
 
+Dataset from: https://www.kaggle.com/datasets/sakshigoyal7/credit-card-customers
+This dataset consists of 10,000 customers mentioning their age, salary, marital_status, credit card limit, credit card category, etc.(nearly 18 features). The dataset only consists of 16.07% of customers who have churned.
+
+Business Problem: A business manager of a consumer credit card bank is facing the problem of customer attrition. They want to analyze the data to find out the reason behind this and leverage the same to predict customers who are likely to drop off. They also want to predict customer churn from the dataset and gain some insights on how the bank can reduce the customers who have churned.
+
+Our group wants to predict which credit card customers are more likely to churn. Churn prediction means detecting which customers are likely to leave a service or to cancel a subscription to a service. It is a critical prediction for many businesses because acquiring new clients often costs more than retaining existing ones.
 
 ## Downloading and Prepping Data
 
@@ -25,15 +34,14 @@ credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon
 
 ```
 
+## Normalize the data
 ```{r}
-#Normalize the data
 normalize <- function(x) {
   return ((x - min(x)) / (max(x) - min(x)))
 }
 ```
 
-
-
+## Logisitic Model
 ```{r}
 library(gmodels)
 library(caret)
