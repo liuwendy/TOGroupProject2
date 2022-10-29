@@ -390,6 +390,43 @@ likely to leave a service or to cancel a subscription to a service. It
 is a critical prediction for many businesses because acquiring new
 clients often costs more than retaining existing ones.</p>
 </div>
+<div id="description-of-data" class="section level2">
+<h2>Description of Data</h2>
+<ul>
+<li>CLIENTNUM: Client number; unique identifier for a customer holding
+the account.</li>
+<li>Attrition_Flag: Customer activity; 0 if account is closed.</li>
+<li>Customer_Age: Customer age (in years).</li>
+<li>Gender</li>
+<li>Dependent_count: Number of dependents.</li>
+<li>Education_Level: Educational attainment of the account holder.</li>
+<li>Marital_Status</li>
+<li>Income_Category: Annual Income range of the account holder.</li>
+<li>Card_Category: Type of card of the account.</li>
+<li>Months_on_book: Period of relationship with the bank (in
+months)</li>
+<li>Total_Relationship_Count: Total number of products held by the
+customer.</li>
+<li>Months_Inactive_12_mon: Number of months inactive for the past 12
+months (in months).</li>
+<li>Contacts_Count_12_mon: Number of contacts in the last 12
+months.</li>
+<li>Credit_Limit: The credit limit of the credit card.</li>
+<li>Total_Revolving_Bal: The total revolving balance in the credit
+card.</li>
+<li>Avg_Open_To_Buy: The difference between the credit limit assigned to
+a cardholder account and the * present balance on the account (average
+of the last 12 months).</li>
+<li>Total_Amt_Chng_Q4_Q1: Change in transaction amount (Q4 over
+Q1).</li>
+<li>Total_Trans_Amt: The total transaction amount (last 12 months).</li>
+<li>Total_Trans_Ct: The total transaction count (last 12 months).</li>
+<li>Total_Ct_Chng_Q4_Q1: The change in transaction count (Q4 over
+Q1).</li>
+<li>Avg_Utilization_Ratio: How much a customer currently owes divided by
+the credit limit (in %).</li>
+</ul>
+</div>
 <div id="downloading-and-prepping-data" class="section level2">
 <h2>Downloading and Prepping Data</h2>
 <p>To clean up the data we wanted to first make multiple variables that
@@ -406,6 +443,9 @@ the numerical variables as Credit Limit and Dependent Count are on very
 different scales. And after an initial logistic regression model, we
 found that dependent count, income, and months with the bank or months
 of inactivity hold high correlations to credit card churn.</p>
+</div>
+<div id="data-cleaning" class="section level2">
+<h2>Data Cleaning</h2>
 <pre class="r"><code>credit &lt;- read.csv(&quot;BankChurners.csv&quot;, stringsAsFactors = TRUE)
 
 credit$CLIENTNUM &lt;- NULL
@@ -477,6 +517,16 @@ summary(credit)</code></pre>
 ##  $ Total_Trans_Ct          : int  42 33 20 20 28 24 31 36 24 32 ...
 ##  $ Total_Ct_Chng_Q4_Q1     : num  1.62 3.71 2.33 2.33 2.5 ...
 ##  $ Avg_Utilization_Ratio   : num  0.061 0.105 0 0.76 0 0.311 0.066 0.048 0.113 0.144 ...</code></pre>
+</div>
+<div id="existing-vs-churning-customers" class="section level2">
+<h2>Existing vs Churning Customers</h2>
+<pre class="r"><code># data is severly imbalanced so we will apply SMOTE to balance it before running the model
+# https://www.statology.org/smote-in-r/
+
+library(DMwR2)</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;quantmod&#39;:
+##   method            from
+##   as.zoo.data.frame zoo</code></pre>
 </div>
 <div id="normalize-the-data" class="section level2">
 <h2>Normalize the data</h2>

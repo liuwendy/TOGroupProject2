@@ -17,10 +17,34 @@ Business Problem: A business manager of a consumer credit card bank is facing th
 
 Our group wants to predict which credit card customers are more likely to churn. Churn prediction means detecting which customers are likely to leave a service or to cancel a subscription to a service. It is a critical prediction for many businesses because acquiring new clients often costs more than retaining existing ones.
 
+## Description of Data
+* CLIENTNUM: Client number; unique identifier for a customer holding the account.
+* Attrition_Flag: Customer activity; 0 if account is closed.
+* Customer_Age: Customer age (in years).
+* Gender
+* Dependent_count: Number of dependents.
+* Education_Level: Educational attainment of the account holder.
+* Marital_Status
+* Income_Category: Annual Income range of the account holder.
+* Card_Category: Type of card of the account.
+* Months_on_book: Period of relationship with the bank (in months)
+* Total_Relationship_Count: Total number of products held by the customer.
+* Months_Inactive_12_mon: Number of months inactive for the past 12 months (in months).
+* Contacts_Count_12_mon: Number of contacts in the last 12 months.
+* Credit_Limit: The credit limit of the credit card.
+* Total_Revolving_Bal: The total revolving balance in the credit card.
+* Avg_Open_To_Buy: The difference between the credit limit assigned to a cardholder account and the * present balance on the account (average of the last 12 months).
+* Total_Amt_Chng_Q4_Q1: Change in transaction amount (Q4 over Q1).
+* Total_Trans_Amt: The total transaction amount (last 12 months).
+* Total_Trans_Ct: The total transaction count (last 12 months).
+* Total_Ct_Chng_Q4_Q1: The change in transaction count (Q4 over Q1).
+* Avg_Utilization_Ratio: How much a customer currently owes divided by the credit limit (in %).
+
 ## Downloading and Prepping Data
 
 To clean up the data we wanted to first make multiple variables that are either unavailable to us prior to looking at customer attrition (such as the naive bayes classifier) or variables that have no use in predicting attrition (the client number). The data was able to factor the non-numerical variables such as "Attrition_Flag", "Education_Level", "Marital_Status", "Income_Category", & "Card_Category" while the rest remained numeric and not as a factor. One thing we found interesting when exploring the dataset is that the attrited customer percentage is only around 16% which will make it harder to predict, but not at all impossible. Of course we will also need to normalize many of the numerical variables as Credit Limit and Dependent Count are on very different scales. And after an initial logistic regression model, we found that dependent count, income, and months with the bank or months of inactivity hold high correlations to credit card churn.
 
+## Data Cleaning
 ```{r}
 credit <- read.csv("BankChurners.csv", stringsAsFactors = TRUE)
 
@@ -34,6 +58,16 @@ summary(credit)
 str(credit)
 
 ```
+
+## Existing vs Churning Customers
+```{r}
+# data is severly imbalanced so we will apply SMOTE to balance it before running the model
+# https://www.statology.org/smote-in-r/
+
+library(DMwR2)
+
+```
+
 
 ## Normalize the data
 ```{r}
