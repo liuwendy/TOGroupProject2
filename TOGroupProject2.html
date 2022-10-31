@@ -520,13 +520,12 @@ summary(credit)</code></pre>
 </div>
 <div id="existing-vs-churning-customers" class="section level2">
 <h2>Existing vs Churning Customers</h2>
-<pre class="r"><code># data is severly imbalanced so we will apply SMOTE to balance it before running the model
+<pre class="r"><code>set.seed(12345)
+
+# data is severly imbalanced so we will apply SMOTE to balance it before running the model
 # https://www.statology.org/smote-in-r/
 
-library(DMwR2)</code></pre>
-<pre><code>## Registered S3 method overwritten by &#39;quantmod&#39;:
-##   method            from
-##   as.zoo.data.frame zoo</code></pre>
+library(smotefamily)</code></pre>
 </div>
 <div id="normalize-the-data" class="section level2">
 <h2>Normalize the data</h2>

@@ -61,10 +61,13 @@ str(credit)
 
 ## Existing vs Churning Customers
 ```{r}
+set.seed(12345)
+
 # data is severly imbalanced so we will apply SMOTE to balance it before running the model
 # https://www.statology.org/smote-in-r/
 
-library(DMwR2)
+library(smotefamily)
+
 
 ```
 
