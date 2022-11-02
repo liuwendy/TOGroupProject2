@@ -52,12 +52,25 @@ credit$CLIENTNUM <- NULL
 credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_1 <- NULL
 credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_2 <- NULL
 
+# Ordinal variable
+credit$Income_Category <- factor(credit$Income_Category, levels = c("Less than $40K", "$40K - $60K", "$60K - $80K", "$80K - $120K", "$120K +", "Unknown"), labels = c(0, 1, 2, 3, 4, 5))
+
+credit$Card_Category <- factor(credit$Card_Category, levels = c("Blue", "Silver", "Gold", "Platinum"), labels = c(0, 1, 2, 3))
+
+credit$Education_Level <- factor(credit$Education_Level, levels = c("Uneducated", "High School", "College", "Graduate", "Post-Graduate", "Doctorate", "Unknown"), labels = c(0, 1, 2, 3, 4, 5, 6))
+
+# Nominal variable
+credit$Gender <- factor(credit$Gender, levels = c("M", "F"), labels = c(0, 1))
+
 credit$Attrition_Flag <- factor(credit$Attrition_Flag, levels = c("Existing Customer", "Attrited Customer"), labels = c(0, 1))
+
+credit$Marital_Status <- factor(credit$Marital_Status, levels = c("Single", "Married", "Divorced", "Unknown"), labels = c(0, 1, 2, 3))
 
 summary(credit)
 str(credit)
 
 ```
+
 
 ## Existing vs Churning Customers
 ```{r}
@@ -67,7 +80,6 @@ set.seed(12345)
 # https://www.statology.org/smote-in-r/
 
 library(smotefamily)
-
 
 ```
 
@@ -83,14 +95,15 @@ set.seed(12345)
 credit_random <- creditmm[sample(nrow(creditmm)),]
 
 credit_norm <- as.data.frame(lapply(credit_random, normalize))
+credit_norm$Attrition_Flag0 <- NULL
 ```
 
 ## Regression Model
 ```{r}
 library(gmodels)
 library(caret)
-firstmodel <- glm(Attrition_Flag ~ ., 
-                    data = credit, family = "binomial")
+firstmodel <- glm(Attrition_Flag1 ~ ., 
+                    data = credit_norm, family = "binomial")
  summary(firstmodel)
 
 ```

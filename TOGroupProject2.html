@@ -452,25 +452,37 @@ credit$CLIENTNUM &lt;- NULL
 credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_1 &lt;- NULL
 credit$Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_2 &lt;- NULL
 
+# Ordinal variable
+credit$Income_Category &lt;- factor(credit$Income_Category, levels = c(&quot;Less than $40K&quot;, &quot;$40K - $60K&quot;, &quot;$60K - $80K&quot;, &quot;$80K - $120K&quot;, &quot;$120K +&quot;, &quot;Unknown&quot;), labels = c(0, 1, 2, 3, 4, 5))
+
+credit$Card_Category &lt;- factor(credit$Card_Category, levels = c(&quot;Blue&quot;, &quot;Silver&quot;, &quot;Gold&quot;, &quot;Platinum&quot;), labels = c(0, 1, 2, 3))
+
+credit$Education_Level &lt;- factor(credit$Education_Level, levels = c(&quot;Uneducated&quot;, &quot;High School&quot;, &quot;College&quot;, &quot;Graduate&quot;, &quot;Post-Graduate&quot;, &quot;Doctorate&quot;, &quot;Unknown&quot;), labels = c(0, 1, 2, 3, 4, 5, 6))
+
+# Nominal variable
+credit$Gender &lt;- factor(credit$Gender, levels = c(&quot;M&quot;, &quot;F&quot;), labels = c(0, 1))
+
 credit$Attrition_Flag &lt;- factor(credit$Attrition_Flag, levels = c(&quot;Existing Customer&quot;, &quot;Attrited Customer&quot;), labels = c(0, 1))
 
+credit$Marital_Status &lt;- factor(credit$Marital_Status, levels = c(&quot;Single&quot;, &quot;Married&quot;, &quot;Divorced&quot;, &quot;Unknown&quot;), labels = c(0, 1, 2, 3))
+
 summary(credit)</code></pre>
-<pre><code>##  Attrition_Flag  Customer_Age   Gender   Dependent_count      Education_Level
-##  0:8500         Min.   :26.00   F:5358   Min.   :0.000   College      :1013  
-##  1:1627         1st Qu.:41.00   M:4769   1st Qu.:1.000   Doctorate    : 451  
-##                 Median :46.00            Median :2.000   Graduate     :3128  
-##                 Mean   :46.33            Mean   :2.346   High School  :2013  
-##                 3rd Qu.:52.00            3rd Qu.:3.000   Post-Graduate: 516  
-##                 Max.   :73.00            Max.   :5.000   Uneducated   :1487  
-##                                                          Unknown      :1519  
-##   Marital_Status       Income_Category  Card_Category  Months_on_book 
-##  Divorced: 748   $120K +       : 727   Blue    :9436   Min.   :13.00  
-##  Married :4687   $40K - $60K   :1790   Gold    : 116   1st Qu.:31.00  
-##  Single  :3943   $60K - $80K   :1402   Platinum:  20   Median :36.00  
-##  Unknown : 749   $80K - $120K  :1535   Silver  : 555   Mean   :35.93  
-##                  Less than $40K:3561                   3rd Qu.:40.00  
-##                  Unknown       :1112                   Max.   :56.00  
-##                                                                       
+<pre><code>##  Attrition_Flag  Customer_Age   Gender   Dependent_count Education_Level
+##  0:8500         Min.   :26.00   0:4769   Min.   :0.000   0:1487         
+##  1:1627         1st Qu.:41.00   1:5358   1st Qu.:1.000   1:2013         
+##                 Median :46.00            Median :2.000   2:1013         
+##                 Mean   :46.33            Mean   :2.346   3:3128         
+##                 3rd Qu.:52.00            3rd Qu.:3.000   4: 516         
+##                 Max.   :73.00            Max.   :5.000   5: 451         
+##                                                          6:1519         
+##  Marital_Status Income_Category Card_Category Months_on_book 
+##  0:3943         0:3561          0:9436        Min.   :13.00  
+##  1:4687         1:1790          1: 555        1st Qu.:31.00  
+##  2: 748         2:1402          2: 116        Median :36.00  
+##  3: 749         3:1535          3:  20        Mean   :35.93  
+##                 4: 727                        3rd Qu.:40.00  
+##                 5:1112                        Max.   :56.00  
+##                                                              
 ##  Total_Relationship_Count Months_Inactive_12_mon Contacts_Count_12_mon
 ##  Min.   :1.000            Min.   :0.000          Min.   :0.000        
 ##  1st Qu.:3.000            1st Qu.:2.000          1st Qu.:2.000        
@@ -499,12 +511,12 @@ summary(credit)</code></pre>
 <pre><code>## &#39;data.frame&#39;:    10127 obs. of  20 variables:
 ##  $ Attrition_Flag          : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
 ##  $ Customer_Age            : int  45 49 51 40 40 44 51 32 37 48 ...
-##  $ Gender                  : Factor w/ 2 levels &quot;F&quot;,&quot;M&quot;: 2 1 2 1 2 2 2 2 2 2 ...
+##  $ Gender                  : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 2 1 2 1 1 1 1 1 1 ...
 ##  $ Dependent_count         : int  3 5 3 4 3 2 4 0 3 2 ...
-##  $ Education_Level         : Factor w/ 7 levels &quot;College&quot;,&quot;Doctorate&quot;,..: 4 3 3 4 6 3 7 4 6 3 ...
-##  $ Marital_Status          : Factor w/ 4 levels &quot;Divorced&quot;,&quot;Married&quot;,..: 2 3 2 4 2 2 2 4 3 3 ...
-##  $ Income_Category         : Factor w/ 6 levels &quot;$120K +&quot;,&quot;$40K - $60K&quot;,..: 3 5 4 5 3 2 1 3 3 4 ...
-##  $ Card_Category           : Factor w/ 4 levels &quot;Blue&quot;,&quot;Gold&quot;,..: 1 1 1 1 1 1 2 4 1 1 ...
+##  $ Education_Level         : Factor w/ 7 levels &quot;0&quot;,&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,..: 2 4 4 2 1 4 7 2 1 4 ...
+##  $ Marital_Status          : Factor w/ 4 levels &quot;0&quot;,&quot;1&quot;,&quot;2&quot;,&quot;3&quot;: 2 1 2 4 2 2 2 4 1 1 ...
+##  $ Income_Category         : Factor w/ 6 levels &quot;0&quot;,&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,..: 3 1 4 1 3 2 5 3 3 4 ...
+##  $ Card_Category           : Factor w/ 4 levels &quot;0&quot;,&quot;1&quot;,&quot;2&quot;,&quot;3&quot;: 1 1 1 1 1 1 3 2 1 1 ...
 ##  $ Months_on_book          : int  39 44 36 34 21 36 46 27 36 36 ...
 ##  $ Total_Relationship_Count: int  5 6 4 3 5 3 6 2 5 6 ...
 ##  $ Months_Inactive_12_mon  : int  1 1 1 4 1 1 1 2 2 3 ...
@@ -537,7 +549,8 @@ creditmm &lt;- as.data.frame(model.matrix(~.-1,credit))
 set.seed(12345)
 credit_random &lt;- creditmm[sample(nrow(creditmm)),]
 
-credit_norm &lt;- as.data.frame(lapply(credit_random, normalize))</code></pre>
+credit_norm &lt;- as.data.frame(lapply(credit_random, normalize))
+credit_norm$Attrition_Flag0 &lt;- NULL</code></pre>
 </div>
 <div id="regression-model" class="section level2">
 <h2>Regression Model</h2>
@@ -545,52 +558,52 @@ credit_norm &lt;- as.data.frame(lapply(credit_random, normalize))</code></pre>
 library(caret)</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
 <pre><code>## Loading required package: lattice</code></pre>
-<pre class="r"><code>firstmodel &lt;- glm(Attrition_Flag ~ ., 
-                    data = credit, family = &quot;binomial&quot;)
+<pre class="r"><code>firstmodel &lt;- glm(Attrition_Flag1 ~ ., 
+                    data = credit_norm, family = &quot;binomial&quot;)
  summary(firstmodel)</code></pre>
 <pre><code>## 
 ## Call:
-## glm(formula = Attrition_Flag ~ ., family = &quot;binomial&quot;, data = credit)
+## glm(formula = Attrition_Flag1 ~ ., family = &quot;binomial&quot;, data = credit_norm)
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
 ## -3.1157  -0.3618  -0.1703  -0.0673   3.5351  
 ## 
 ## Coefficients: (1 not defined because of singularities)
-##                                 Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)                    6.723e+00  4.748e-01  14.162  &lt; 2e-16 ***
-## Customer_Age                  -6.131e-03  7.711e-03  -0.795 0.426532    
-## GenderM                       -8.938e-01  1.455e-01  -6.142 8.16e-10 ***
-## Dependent_count                1.358e-01  2.998e-02   4.530 5.89e-06 ***
-## Education_LevelDoctorate       3.689e-01  2.081e-01   1.773 0.076218 .  
-## Education_LevelGraduate       -5.798e-03  1.396e-01  -0.042 0.966864    
-## Education_LevelHigh School     1.026e-02  1.488e-01   0.069 0.945016    
-## Education_LevelPost-Graduate   3.112e-01  2.050e-01   1.518 0.128952    
-## Education_LevelUneducated      6.955e-02  1.573e-01   0.442 0.658477    
-## Education_LevelUnknown         1.329e-01  1.554e-01   0.855 0.392310    
-## Marital_StatusMarried         -4.994e-01  1.544e-01  -3.234 0.001219 ** 
-## Marital_StatusSingle           1.081e-01  1.549e-01   0.698 0.485248    
-## Marital_StatusUnknown          4.528e-02  1.962e-01   0.231 0.817467    
-## Income_Category$40K - $60K    -9.083e-01  2.026e-01  -4.484 7.33e-06 ***
-## Income_Category$60K - $80K    -6.405e-01  1.791e-01  -3.576 0.000349 ***
-## Income_Category$80K - $120K   -2.983e-01  1.663e-01  -1.794 0.072811 .  
-## Income_CategoryLess than $40K -7.702e-01  2.190e-01  -3.516 0.000438 ***
-## Income_CategoryUnknown        -8.321e-01  2.322e-01  -3.584 0.000338 ***
-## Card_CategoryGold              1.066e+00  3.521e-01   3.026 0.002475 ** 
-## Card_CategoryPlatinum          9.816e-01  6.813e-01   1.441 0.149654    
-## Card_CategorySilver            4.502e-01  1.962e-01   2.294 0.021778 *  
-## Months_on_book                -4.685e-03  7.673e-03  -0.611 0.541484    
-## Total_Relationship_Count      -4.493e-01  2.750e-02 -16.338  &lt; 2e-16 ***
-## Months_Inactive_12_mon         5.078e-01  3.793e-02  13.387  &lt; 2e-16 ***
-## Contacts_Count_12_mon          5.133e-01  3.655e-02  14.044  &lt; 2e-16 ***
-## Credit_Limit                  -1.971e-05  6.860e-06  -2.873 0.004064 ** 
-## Total_Revolving_Bal           -9.321e-04  7.207e-05 -12.934  &lt; 2e-16 ***
-## Avg_Open_To_Buy                       NA         NA      NA       NA    
-## Total_Amt_Chng_Q4_Q1          -4.262e-01  1.878e-01  -2.269 0.023253 *  
-## Total_Trans_Amt                4.855e-04  2.295e-05  21.154  &lt; 2e-16 ***
-## Total_Trans_Ct                -1.192e-01  3.731e-03 -31.944  &lt; 2e-16 ***
-## Total_Ct_Chng_Q4_Q1           -2.798e+00  1.889e-01 -14.813  &lt; 2e-16 ***
-## Avg_Utilization_Ratio         -1.253e-01  2.470e-01  -0.507 0.612020    
+##                           Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)                3.59503    0.32474  11.071  &lt; 2e-16 ***
+## Customer_Age              -0.28816    0.36240  -0.795 0.426532    
+## Gender1                    0.89379    0.14553   6.142 8.16e-10 ***
+## Dependent_count            0.67899    0.14988   4.530 5.89e-06 ***
+## Education_Level1          -0.05928    0.13131  -0.451 0.651661    
+## Education_Level2          -0.06955    0.15734  -0.442 0.658477    
+## Education_Level3          -0.07535    0.12069  -0.624 0.532447    
+## Education_Level4           0.24168    0.19268   1.254 0.209725    
+## Education_Level5           0.29938    0.19575   1.529 0.126160    
+## Education_Level6           0.06336    0.13857   0.457 0.647492    
+## Marital_Status1           -0.60752    0.08433  -7.204 5.84e-13 ***
+## Marital_Status2           -0.10810    0.15490  -0.698 0.485248    
+## Marital_Status3           -0.06282    0.14765  -0.425 0.670500    
+## Income_Category1          -0.13808    0.12269  -1.125 0.260397    
+## Income_Category2           0.12975    0.18539   0.700 0.484027    
+## Income_Category3           0.47190    0.18795   2.511 0.012047 *  
+## Income_Category4           0.77022    0.21905   3.516 0.000438 ***
+## Income_Category5          -0.06192    0.13608  -0.455 0.649082    
+## Card_Category1             0.45017    0.19622   2.294 0.021778 *  
+## Card_Category2             1.06554    0.35209   3.026 0.002475 ** 
+## Card_Category3             0.98161    0.68132   1.441 0.149654    
+## Months_on_book            -0.20144    0.32992  -0.611 0.541484    
+## Total_Relationship_Count  -2.24657    0.13751 -16.338  &lt; 2e-16 ***
+## Months_Inactive_12_mon     3.04656    0.22758  13.387  &lt; 2e-16 ***
+## Contacts_Count_12_mon      3.07950    0.21928  14.044  &lt; 2e-16 ***
+## Credit_Limit              -0.65192    0.22690  -2.873 0.004064 ** 
+## Total_Revolving_Bal       -2.34618    0.18140 -12.934  &lt; 2e-16 ***
+## Avg_Open_To_Buy                 NA         NA      NA       NA    
+## Total_Amt_Chng_Q4_Q1      -1.44794    0.63807  -2.269 0.023253 *  
+## Total_Trans_Amt            8.72560    0.41248  21.154  &lt; 2e-16 ***
+## Total_Trans_Ct           -15.37306    0.48124 -31.944  &lt; 2e-16 ***
+## Total_Ct_Chng_Q4_Q1      -10.39260    0.70156 -14.813  &lt; 2e-16 ***
+## Avg_Utilization_Ratio     -0.12517    0.24680  -0.507 0.612020    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
