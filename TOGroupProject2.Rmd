@@ -71,19 +71,6 @@ str(credit)
 
 ```
 
-
-## Existing vs Churning Customers
-```{r}
-set.seed(12345)
-
-# data is severly imbalanced so we will apply SMOTE to balance it before running the model
-# https://www.statology.org/smote-in-r/
-
-library(smotefamily)
-
-```
-
-
 ## Normalize the data
 ```{r}
 normalize <- function(x) {
@@ -98,14 +85,99 @@ credit_norm <- as.data.frame(lapply(credit_random, normalize))
 credit_norm$Attrition_Flag0 <- NULL
 ```
 
+
+## Splitting train and test
+```{r}
+set.seed(12345)
+test_set <- sample(1:nrow(credit_norm), nrow(credit_norm)/2)
+
+# Create a train set and test set
+#First the predictors - all columns except the Attrition_Flag1 column
+credit_train <- credit_norm[-test_set, -match("Attrition_Flag1",names(credit_norm))]
+credit_test <- credit_norm[test_set, -match("Attrition_Flag1",names(credit_norm))]
+
+#Now the response (aka Labels) - only the Attrition_Flag1 column
+credit_train_labels <- credit_norm[-test_set, "Attrition_Flag1"]
+credit_test_labels <- credit_norm[test_set, "Attrition_Flag1"]
+```
+
+
 ## Regression Model
 ```{r}
 library(gmodels)
 library(caret)
 firstmodel <- glm(Attrition_Flag1 ~ ., 
                     data = credit_norm, family = "binomial")
- summary(firstmodel)
+
+summary(firstmodel)
+
+LOG_prediction <- predict(firstmodel, credit_test, type="response")
+LOG_pred <- ifelse(LOG_prediction < 0.1, 0, 1)
+CrossTable(x = credit_test_labels, y = LOG_pred, prop.chisq=FALSE)
+confusionMatrix(as.factor(LOG_pred), as.factor(credit_test_labels), positive = "1")
+ 
+```
+
+## KNN
+```{r}
+#Lets run the KNN command
+library(class)
+library(caret)
+
+#Run KNN on train data, create predictions for test data
+#Starting K value close to sqrt(nrow(alcohol2_train))
+sqrt(nrow(credit_train))
+
+KNN_model <- knn(train = credit_train, test = credit_test,
+                      cl = credit_train_labels, k=71)
+
+#Evaluate model results
+library(gmodels)
+CrossTable(x = credit_test_labels, y = KNN_model, prop.chisq=FALSE)
+
+confusionMatrix(as.factor(KNN_model), as.factor(credit_test_labels), positive = "1")
 
 ```
 
+## ANN
+```{r}
+credit_train <- credit_norm[-test_set,]
+credit_test <- credit_norm[test_set,]
+
+library(neuralnet)
+
+# simple ANN with only a single hidden neuron
+ANN_model <- neuralnet(formula = Attrition_Flag1 ~. ,
+                              data = credit_train)
+
+ANN_prediction <-predict(ANN_model, credit_test)
+
+ANN_pred <- ifelse(ANN_prediction < 0.2, 0, 1)
+
+library(gmodels)
+library(caret)
+
+CrossTable(x = credit_test_labels, y = ANN_pred, prop.chisq=FALSE)
+
+confusionMatrix(as.factor(ANN_pred), as.factor(credit_test_labels), positive = "1")
+```
+
+## Decision Tree
+```{r}
+library(C50)
+credit_train$Attrition_Flag1 <- as.factor(credit_train$Attrition_Flag1)
+DT_model <- C5.0(Attrition_Flag1 ~ ., data=credit_train)
+plot(DT_model)
+
+DT_pred <- predict(DT_model, credit_test)
+
+library(gmodels)
+library(caret)
+
+CrossTable(credit_test_labels, DT_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual yyes', 'predicted yyes'))
+confusionMatrix(as.factor(DT_pred), as.factor(credit_test_labels), positive = "1")
+
+```
 
