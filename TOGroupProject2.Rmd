@@ -162,6 +162,23 @@ CrossTable(x = credit_test_labels, y = ANN_pred, prop.chisq=FALSE)
 confusionMatrix(as.factor(ANN_pred), as.factor(credit_test_labels), positive = "1")
 ```
 
+## SVM
+```{r}
+library(kernlab)
+SVM_model <- ksvm(as.factor(Attrition_Flag1) ~ ., data = credit_train,
+                          kernel = "vanilladot")
+
+SVM_predictions <- predict(SVM_model, credit_test)
+agreement <- SVM_predictions == credit_test$Attrition_Flag1
+table(agreement)
+prop.table(table(agreement))
+
+CrossTable(x = credit_test_labels, y = SVM_predictions, prop.chisq=FALSE)
+
+confusionMatrix(as.factor(SVM_predictions), as.factor(credit_test_labels), positive = "1")
+```
+
+
 ## Decision Tree
 ```{r}
 library(C50)
@@ -178,6 +195,11 @@ CrossTable(credit_test_labels, DT_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual yyes', 'predicted yyes'))
 confusionMatrix(as.factor(DT_pred), as.factor(credit_test_labels), positive = "1")
+
+```
+
+## Stacked Model
+```{r}
 
 ```
 
