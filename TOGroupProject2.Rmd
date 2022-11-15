@@ -166,7 +166,7 @@ confusionMatrix(as.factor(ANN_pred), as.factor(credit_test_labels), positive = "
 ```{r}
 library(kernlab)
 #SVM_model_vanilla <- ksvm(as.factor(Attrition_Flag1) ~ ., data = credit_train,
-                          kernel = "vanilladot")
+#                          kernel = "vanilladot")
 
 #SVM_predictions_vanilla <- predict(SVM_model_vanilla, credit_test)
 #agreement_vanilla <- SVM_predictions_vanilla == credit_test$Attrition_Flag1
@@ -178,7 +178,7 @@ library(kernlab)
 #confusionMatrix(as.factor(SVM_predictions_vanilla), as.factor(credit_test_labels), positive = "1")
 ```
 
-#SVM alternative
+## SVM 
 ```{r}
 SVM_model <- ksvm(as.factor(Attrition_Flag1) ~ ., data = credit_train,
                           kernel = "rbfdot")
@@ -213,8 +213,30 @@ confusionMatrix(as.factor(DT_pred), as.factor(credit_test_labels), positive = "1
 
 ```
 
-## Stacked Model
+## Single Data Frame
 ```{r}
-
+all <- data.frame(LOG_prediction, KNN_model, ANN_prediction, SVM_predictions, DT_pred, credit_test$Attrition_Flag1)
 ```
 
+## Stacked Model
+```{r}
+set.seed(12345)
+test_set1 <- sample(1:nrow(all), round(nrow(all)*.3))
+
+credit_train1 <- all[-test_set1, ]
+credit_test1 <- all[test_set1, ]
+
+library(C50)
+DT_model2 <- C5.0(as.factor(credit_test.Attrition_Flag1) ~ ., data=credit_train1)
+plot(DT_model2)
+
+DT_pred2 <- predict(DT_model2, credit_test1)
+
+library(gmodels)
+library(caret)
+
+CrossTable(credit_test1$credit_test.Attrition_Flag1, DT_pred2,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual yyes', 'predicted yyes'))
+confusionMatrix(as.factor(DT_pred2), as.factor(credit_test1$credit_test.Attrition_Flag1), positive = "1")
+```
