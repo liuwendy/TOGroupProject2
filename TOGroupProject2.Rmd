@@ -129,7 +129,7 @@ library(caret)
 sqrt(nrow(credit_train))
 
 KNN_model <- knn(train = credit_train, test = credit_test,
-                      cl = credit_train_labels, k=71)
+                      cl = credit_train_labels, k=5)
 
 #Evaluate model results
 library(gmodels)
@@ -162,11 +162,26 @@ CrossTable(x = credit_test_labels, y = ANN_pred, prop.chisq=FALSE)
 confusionMatrix(as.factor(ANN_pred), as.factor(credit_test_labels), positive = "1")
 ```
 
-## SVM
+## SVM alternative (vanilla)
 ```{r}
 library(kernlab)
-SVM_model <- ksvm(as.factor(Attrition_Flag1) ~ ., data = credit_train,
+#SVM_model_vanilla <- ksvm(as.factor(Attrition_Flag1) ~ ., data = credit_train,
                           kernel = "vanilladot")
+
+#SVM_predictions_vanilla <- predict(SVM_model_vanilla, credit_test)
+#agreement_vanilla <- SVM_predictions_vanilla == credit_test$Attrition_Flag1
+#table(agreement_vanilla)
+#prop.table(table(agreement_vanilla))
+
+#CrossTable(x = credit_test_labels, y = SVM_predictions_vanilla, prop.chisq=FALSE)
+
+#confusionMatrix(as.factor(SVM_predictions_vanilla), as.factor(credit_test_labels), positive = "1")
+```
+
+#SVM alternative
+```{r}
+SVM_model <- ksvm(as.factor(Attrition_Flag1) ~ ., data = credit_train,
+                          kernel = "rbfdot")
 
 SVM_predictions <- predict(SVM_model, credit_test)
 agreement <- SVM_predictions == credit_test$Attrition_Flag1
