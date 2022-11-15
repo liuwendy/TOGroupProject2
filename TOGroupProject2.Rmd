@@ -218,6 +218,12 @@ confusionMatrix(as.factor(DT_pred), as.factor(credit_test_labels), positive = "1
 all <- data.frame(LOG_prediction, KNN_model, ANN_prediction, SVM_predictions, DT_pred, credit_test$Attrition_Flag1)
 ```
 
+## Error
+```{r}
+error_cost <- matrix(c(0, 1, 4, 0), nrow = 2)
+```
+
+
 ## Stacked Model
 ```{r}
 set.seed(12345)
@@ -227,7 +233,7 @@ credit_train1 <- all[-test_set1, ]
 credit_test1 <- all[test_set1, ]
 
 library(C50)
-DT_model2 <- C5.0(as.factor(credit_test.Attrition_Flag1) ~ ., data=credit_train1)
+DT_model2 <- C5.0(as.factor(credit_test.Attrition_Flag1) ~ ., data=credit_train1, costs = error_cost)
 plot(DT_model2)
 
 DT_pred2 <- predict(DT_model2, credit_test1)
