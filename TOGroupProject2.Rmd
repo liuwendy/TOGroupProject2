@@ -139,6 +139,25 @@ confusionMatrix(as.factor(KNN_model), as.factor(credit_test_labels), positive = 
 
 ```
 
+## KNN Train
+```{r}
+library(caret)
+
+knn_ctrl <- trainControl(method = "cv", number = 10)
+knn_grid <- expand.grid(k = c(1, 5, 7, 9, 10, 15, 20))
+
+knn_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_norm, method = "knn",
+           metric = "Kappa",
+           trControl = knn_ctrl,
+           preProcess = c("center","scale"), 
+           tuneLength = 20,
+           tuneGrid = knn_grid
+           )
+
+knn_train
+```
+
+
 ## ANN
 ```{r}
 credit_train <- credit_norm[-test_set,]
@@ -161,6 +180,12 @@ CrossTable(x = credit_test_labels, y = ANN_pred, prop.chisq=FALSE)
 
 confusionMatrix(as.factor(ANN_pred), as.factor(credit_test_labels), positive = "1")
 ```
+
+## ANN Train
+```{r}
+
+```
+
 
 ## SVM alternative (vanilla)
 ```{r}
