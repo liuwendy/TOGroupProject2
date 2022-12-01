@@ -114,10 +114,10 @@ logreg_model <- glm(Attrition_Flag1 ~ . +
 
 summary(logreg_model)
 
-logreg_prediction <- predict(logreg_model, credit_test, type="response")
-logreg_pred <- ifelse(logreg_prediction < 0.1, 0, 1)
-CrossTable(x = credit_test_labels, y = logreg_pred, prop.chisq=FALSE)
-confusionMatrix(as.factor(logreg_pred), as.factor(credit_test_labels), positive = "1")
+LOG_prediction <- predict(logreg_model, credit_test, type="response")
+LOG_pred <- ifelse(logreg_prediction < 0.1, 0, 1)
+CrossTable(x = credit_test_labels, y = LOG_pred, prop.chisq=FALSE)
+confusionMatrix(as.factor(LOG_pred), as.factor(credit_test_labels), positive = "1")
 ```
 
 ## KNN
