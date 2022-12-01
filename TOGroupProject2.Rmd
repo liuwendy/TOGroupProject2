@@ -245,6 +245,20 @@ confusionMatrix(as.factor(SVM_predictions), as.factor(credit_test_labels), posit
 ```
 
 
+## SVM Train
+
+```{r}
+svm_control <- trainControl(method = "cv", number = 4)
+
+svm_cv <- train(as.factor(Attrition_Flag1) ~ ., 
+                data = credit_train,
+                method = "svmLinear",
+                trControl = training_control,
+                metric = "Kappa")
+svm_cv
+```
+
+
 ## Decision Tree
 ```{r}
 library(C50)
