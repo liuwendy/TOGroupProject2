@@ -115,10 +115,23 @@ logreg_model <- glm(Attrition_Flag1 ~ . +
 summary(logreg_model)
 
 LOG_prediction <- predict(logreg_model, credit_test, type="response")
-LOG_pred <- ifelse(logreg_prediction < 0.1, 0, 1)
+LOG_pred <- ifelse(LOG_prediction < 0.1, 0, 1)
 CrossTable(x = credit_test_labels, y = LOG_pred, prop.chisq=FALSE)
 confusionMatrix(as.factor(LOG_pred), as.factor(credit_test_labels), positive = "1")
 ```
+
+## Regression Train
+```{r}
+log_ctrl <- trainControl(method="cv", number=10)
+log_train <- train(Attrition_Flag1 ~ ., data = credit_norm, method = "lm", 
+            metric = "Rsquared",
+            trControl = log_ctrl,
+            preProcess = c("center","scale")
+            )
+log_train
+log_pred <-predict(log_train, credit_norm)
+```
+
 
 ## KNN
 ```{r}
@@ -185,7 +198,18 @@ confusionMatrix(as.factor(ANN_pred), as.factor(credit_test_labels), positive = "
 
 ## ANN Train
 ```{r}
+ann_ctrl <- trainControl(method = "cv", number = 4)
+ann_grid <- expand.grid(.size = c(1, 5, 7, 9, 10, 15, 20),
+                        .decay = c(1, 5, 7, 9, 10, 15, 20))
 
+ann_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_norm, method = "nnet",
+          metric = "Kappa",
+          trControl = ann_ctrl,
+          tuneGrid = ann_grid)
+
+ann_train
+
+ann_pred <- predict(ann_train, credit_norm)
 ```
 
 
