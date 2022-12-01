@@ -87,81 +87,51 @@ credit_norm$Attrition_Flag0 <- NULL
 
 
 ## Splitting train and test
+
 ```{r}
-set.seed(12345)
 test_set <- sample(1:nrow(credit_norm), nrow(credit_norm)/2)
 
 # Create a train set and test set
 #First the predictors - all columns except the Attrition_Flag1 column
-credit_train <- credit_norm[-test_set, -match("Attrition_Flag1",names(credit_norm))]
-credit_test <- credit_norm[test_set, -match("Attrition_Flag1",names(credit_norm))]
+
+credit_train <- credit_norm[-test_set,]
+credit_test <- credit_norm[test_set,]
+
+#credit_train <- credit_norm[-test_set, -match("Attrition_Flag1",names(credit_norm))]
+#credit_test <- credit_norm[test_set, -match("Attrition_Flag1",names(credit_norm))]
 
 #Now the response (aka Labels) - only the Attrition_Flag1 column
-credit_train_labels <- credit_norm[-test_set, "Attrition_Flag1"]
-credit_test_labels <- credit_norm[test_set, "Attrition_Flag1"]
-```
-
-
-## Regression Model
-```{r}
-library(gmodels)
-library(caret)
-logreg_model <- glm(Attrition_Flag1 ~ . +
-                      Marital_Status1*Total_Trans_Ct + 
-                      Total_Relationship_Count*Contacts_Count_12_mon +
-                      Total_Trans_Amt*Total_Trans_Ct,
-                    data = credit_norm, family = "binomial")
-
-summary(logreg_model)
-
-LOG_prediction <- predict(logreg_model, credit_test, type="response")
-LOG_pred <- ifelse(LOG_prediction < 0.1, 0, 1)
-CrossTable(x = credit_test_labels, y = LOG_pred, prop.chisq=FALSE)
-confusionMatrix(as.factor(LOG_pred), as.factor(credit_test_labels), positive = "1")
+#credit_train_labels <- credit_norm[-test_set, "Attrition_Flag1"]
+#credit_test_labels <- credit_norm[test_set, "Attrition_Flag1"]
 ```
 
 ## Regression Train
+
 ```{r}
+library(caret)
 log_ctrl <- trainControl(method="cv", number=10)
-log_train <- train(Attrition_Flag1 ~ ., data = credit_norm, method = "lm", 
-            metric = "Rsquared",
+log_train <- train(as.factor(Attrition_Flag1) ~ .+
+                      Marital_Status1*Total_Trans_Ct + 
+                      Total_Relationship_Count*Contacts_Count_12_mon +
+                      Total_Trans_Amt*Total_Trans_Ct, 
+            data = credit_train, method = "glm", 
+            metric = "Kappa",
             trControl = log_ctrl,
             preProcess = c("center","scale")
             )
 log_train
-log_pred <-predict(log_train, credit_norm)
-```
-
-
-## KNN
-```{r}
-#Lets run the KNN command
-library(class)
-library(caret)
-
-#Run KNN on train data, create predictions for test data
-#Starting K value close to sqrt(nrow(alcohol2_train))
-sqrt(nrow(credit_train))
-
-KNN_model <- knn(train = credit_train, test = credit_test,
-                      cl = credit_train_labels, k=5)
-
-#Evaluate model results
-library(gmodels)
-CrossTable(x = credit_test_labels, y = KNN_model, prop.chisq=FALSE)
-
-confusionMatrix(as.factor(KNN_model), as.factor(credit_test_labels), positive = "1")
-
+log_pred <-predict(log_train, credit_test, type = "prob")
 ```
 
 ## KNN Train
+
 ```{r}
 library(caret)
 
 knn_ctrl <- trainControl(method = "cv", number = 10)
 knn_grid <- expand.grid(k = c(1, 5, 7, 9, 10, 15, 20))
 
-knn_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_norm, method = "knn",
+knn_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method = "knn",
            metric = "Kappa",
            trControl = knn_ctrl,
            preProcess = c("center","scale"), 
@@ -170,112 +140,40 @@ knn_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_norm, method = 
            )
 
 knn_train
-```
-
-
-## ANN
-```{r}
-credit_train <- credit_norm[-test_set,]
-credit_test <- credit_norm[test_set,]
-
-library(neuralnet)
-
-# simple ANN with only a single hidden neuron
-ANN_model <- neuralnet(formula = Attrition_Flag1 ~. ,
-                              data = credit_train)
-
-ANN_prediction <-predict(ANN_model, credit_test)
-
-ANN_pred <- ifelse(ANN_prediction < 0.2, 0, 1)
-
-library(gmodels)
-library(caret)
-
-CrossTable(x = credit_test_labels, y = ANN_pred, prop.chisq=FALSE)
-
-confusionMatrix(as.factor(ANN_pred), as.factor(credit_test_labels), positive = "1")
+knn_pred <-predict(knn_train, credit_test)
 ```
 
 ## ANN Train
 ```{r}
-ann_ctrl <- trainControl(method = "cv", number = 4)
+ann_ctrl <- trainControl(method = "cv", number = 10)
 ann_grid <- expand.grid(.size = c(1, 5, 7, 9, 10, 15, 20),
-                        .decay = c(1, 5, 7, 9, 10, 15, 20))
+                        .decay = c(0, 0.01, .1))
 
-ann_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_norm, method = "nnet",
+ann_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method = "nnet",
           metric = "Kappa",
           trControl = ann_ctrl,
           tuneGrid = ann_grid)
 
 ann_train
 
-ann_pred <- predict(ann_train, credit_norm)
+ann_pred <- predict(ann_train, credit_test)
 ```
-
-
-## SVM alternative (vanilla)
-```{r}
-library(kernlab)
-#SVM_model_vanilla <- ksvm(as.factor(Attrition_Flag1) ~ ., data = credit_train,
-#                          kernel = "vanilladot")
-
-#SVM_predictions_vanilla <- predict(SVM_model_vanilla, credit_test)
-#agreement_vanilla <- SVM_predictions_vanilla == credit_test$Attrition_Flag1
-#table(agreement_vanilla)
-#prop.table(table(agreement_vanilla))
-
-#CrossTable(x = credit_test_labels, y = SVM_predictions_vanilla, prop.chisq=FALSE)
-
-#confusionMatrix(as.factor(SVM_predictions_vanilla), as.factor(credit_test_labels), positive = "1")
-```
-
-## SVM 
-```{r}
-SVM_model <- ksvm(as.factor(Attrition_Flag1) ~ ., data = credit_train,
-                          kernel = "rbfdot")
-
-SVM_predictions <- predict(SVM_model, credit_test)
-agreement <- SVM_predictions == credit_test$Attrition_Flag1
-table(agreement)
-prop.table(table(agreement))
-
-CrossTable(x = credit_test_labels, y = SVM_predictions, prop.chisq=FALSE)
-
-confusionMatrix(as.factor(SVM_predictions), as.factor(credit_test_labels), positive = "1")
-```
-
 
 ## SVM Train
 
 ```{r}
-svm_control <- trainControl(method = "cv", number = 4)
+svm_control <- trainControl(method = "cv", number = 10)
+svm_grid <- expand.grid(C=c(1, 5, 7, 9, 10, 15, 20))
 
-svm_cv <- train(as.factor(Attrition_Flag1) ~ ., 
+svm_train <- train(as.factor(Attrition_Flag1) ~ ., 
                 data = credit_train,
                 method = "svmLinear",
-                trControl = training_control,
-                metric = "Kappa")
-svm_cv
-```
-
-
-## Decision Tree
-```{r}
-library(C50)
-credit_train$Attrition_Flag1 <- as.factor(credit_train$Attrition_Flag1)
-DT_model <- C5.0(Attrition_Flag1 ~ ., data=credit_train)
-plot(DT_model)
-
-DT_pred <- predict(DT_model, credit_test)
-
-library(gmodels)
-library(caret)
-
-CrossTable(credit_test_labels, DT_pred,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
-           dnn = c('actual yyes', 'predicted yyes'))
-confusionMatrix(as.factor(DT_pred), as.factor(credit_test_labels), positive = "1")
-
+                preProcess = c("center", "scale"),
+                trControl = svm_control,
+                metric = "Kappa",
+                tuneGrid = svm_grid)
+svm_train
+svm_pred <-predict(svm_train, credit_test)
 ```
 
 ## Decision Tree Train
@@ -289,23 +187,44 @@ dt_grid <- expand.grid(.model = "tree",
                        .trials = c(1, 5, 10, 15, 20, 25, 30, 35),
                        .winnow = "FALSE")
 
-dt_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_norm, method = "C5.0",
+dt_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method = "C5.0",
                   metric = "Kappa",
                   trControl = dt_ctrl,
                   tuneGrid = dt_grid)
 
-dt_train_pred <- predict(dt_train, credit_norm)
-table(dt_train_pred, credit_norm$Attrition_Flag1)
+dt_train
+dt_pred <- predict(dt_train, credit_test, type = "prob")
 
-dt_train_prob <- head(predict(dt_train, credit_norm, type = "prob"))
+#dt_train_pred <- predict(dt_train, credit_test)
+#table(dt_train_pred, credit_norm$Attrition_Flag1)
 
-confusionMatrix(as.factor(credit_norm$Attrition_Flag1), dt_train_pred)
+#confusionMatrix(as.factor(credit_norm$Attrition_Flag1), dt_train_pred)
+```
+
+## Random Forest Train
+
+```{r}
+ranger_ctrl <- trainControl(method = "cv", number = 10)
+ranger_grid <- expand.grid( mtry = c(2, 3, 4),
+                             min.node.size = c(2, 4, 10),
+                             splitrule = c('extratrees'))
+
+ranger_train <- train(as.factor(Attrition_Flag1) ~ ., 
+                  data = credit_train,
+                  trControl = ranger_ctrl,
+                  preProcess = c("center", "scale"),
+                  metric = "Kappa",
+                  method = "ranger",
+                  tuneGrid = ranger_grid)
+
+ranger_train
+ranger_pred <-predict(ranger_train, credit_test)
 ```
 
 
 ## Single Data Frame
 ```{r}
-all <- data.frame(LOG_prediction, KNN_model, ANN_prediction, SVM_predictions, DT_pred, credit_test$Attrition_Flag1)
+all <- data.frame(log_pred, knn_pred, ann_pred, svm_pred, dt_pred, ranger_pred, credit_test$Attrition_Flag1)
 ```
 
 ## Error
@@ -316,23 +235,22 @@ error_cost <- matrix(c(0, 1, 4, 0), nrow = 2)
 
 ## Stacked Model
 ```{r}
-set.seed(12345)
 test_set1 <- sample(1:nrow(all), round(nrow(all)*.3))
 
 credit_train1 <- all[-test_set1, ]
 credit_test1 <- all[test_set1, ]
 
 library(C50)
-DT_model2 <- C5.0(as.factor(credit_test.Attrition_Flag1) ~ ., data=credit_train1, costs = error_cost)
-plot(DT_model2)
+stacked_model <- C5.0(as.factor(credit_test.Attrition_Flag1) ~ ., data=credit_train1, costs = error_cost)
+plot(stacked_model)
 
-DT_pred2 <- predict(DT_model2, credit_test1)
+stacked_pred <- predict(stacked_model, credit_test1)
 
 library(gmodels)
 library(caret)
 
-CrossTable(credit_test1$credit_test.Attrition_Flag1, DT_pred2,
+CrossTable(credit_test1$credit_test.Attrition_Flag1, stacked_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual yyes', 'predicted yyes'))
-confusionMatrix(as.factor(DT_pred2), as.factor(credit_test1$credit_test.Attrition_Flag1), positive = "1")
+confusionMatrix(as.factor(stacked_pred), as.factor(credit_test1$credit_test.Attrition_Flag1), positive = "1")
 ```
