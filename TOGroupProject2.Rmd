@@ -106,16 +106,18 @@ credit_test_labels <- credit_norm[test_set, "Attrition_Flag1"]
 ```{r}
 library(gmodels)
 library(caret)
-firstmodel <- glm(Attrition_Flag1 ~ ., 
+logreg_model <- glm(Attrition_Flag1 ~ . +
+                      Marital_Status1*Total_Trans_Ct + 
+                      Total_Relationship_Count*Contacts_Count_12_mon +
+                      Total_Trans_Amt*Total_Trans_Ct,
                     data = credit_norm, family = "binomial")
 
-summary(firstmodel)
+summary(logreg_model)
 
-LOG_prediction <- predict(firstmodel, credit_test, type="response")
-LOG_pred <- ifelse(LOG_prediction < 0.1, 0, 1)
-CrossTable(x = credit_test_labels, y = LOG_pred, prop.chisq=FALSE)
-confusionMatrix(as.factor(LOG_pred), as.factor(credit_test_labels), positive = "1")
- 
+logreg_prediction <- predict(logreg_model, credit_test, type="response")
+logreg_pred <- ifelse(logreg_prediction < 0.1, 0, 1)
+CrossTable(x = credit_test_labels, y = logreg_pred, prop.chisq=FALSE)
+confusionMatrix(as.factor(logreg_pred), as.factor(credit_test_labels), positive = "1")
 ```
 
 ## KNN
@@ -237,6 +239,31 @@ CrossTable(credit_test_labels, DT_pred,
 confusionMatrix(as.factor(DT_pred), as.factor(credit_test_labels), positive = "1")
 
 ```
+
+## Decision Tree Train
+
+```{r}
+library(caret)
+dt_ctrl <- trainControl(method = "cv", number = 10,
+                        selectionFunction = "oneSE")
+
+dt_grid <- expand.grid(.model = "tree",
+                       .trials = c(1, 5, 10, 15, 20, 25, 30, 35),
+                       .winnow = "FALSE")
+
+dt_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_norm, method = "C5.0",
+                  metric = "Kappa",
+                  trControl = dt_ctrl,
+                  tuneGrid = dt_grid)
+
+dt_train_pred <- predict(dt_train, credit_norm)
+table(dt_train_pred, credit_norm$Attrition_Flag1)
+
+dt_train_prob <- head(predict(dt_train, credit_norm, type = "prob"))
+
+confusionMatrix(as.factor(credit_norm$Attrition_Flag1), dt_train_pred)
+```
+
 
 ## Single Data Frame
 ```{r}
