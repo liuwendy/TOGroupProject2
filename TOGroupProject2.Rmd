@@ -145,10 +145,13 @@ knn_pred <-predict(knn_train, credit_test)
 
 ## ANN Train
 ```{r}
+#We are using the cv method of resampling and we will be doing this 10 times for the training data
 ann_ctrl <- trainControl(method = "cv", number = 10)
+#Then using expand.grid to get all combinations
 ann_grid <- expand.grid(.size = c(1, 5, 7, 9, 10, 15, 20),
                         .decay = c(0, 0.01, .1))
-
+#We have set up for size for the number of units in the layer, and decay to prevent overfitting
+#We are now training this on the Attrition Flag data from the credit_train data using a neural network model, using Kappa values for optimal model selection. We are using the control set and the tuning grid 1 we created earlier
 ann_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method = "nnet",
           metric = "Kappa",
           trControl = ann_ctrl,
