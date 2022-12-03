@@ -141,6 +141,8 @@ knn_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method =
 
 knn_train
 knn_pred <-predict(knn_train, credit_test)
+
+confusionMatrix(as.factor(credit_test$Attrition_Flag1), knn_pred)
 ```
 
 ## ANN Train
