@@ -232,12 +232,13 @@ all <- data.frame(log_pred, knn_pred, ann_pred, svm_pred, dt_pred, ranger_pred, 
 
 ## Error
 ```{r}
-error_cost <- matrix(c(0, 1, 4, 0), nrow = 2)
+error_cost <- matrix(c(0, 180, 750, 0), nrow = 2)
 ```
 
 
 ## Stacked Model
 ```{r}
+set.seed(12345)
 test_set1 <- sample(1:nrow(all), round(nrow(all)*.3))
 
 credit_train1 <- all[-test_set1, ]
