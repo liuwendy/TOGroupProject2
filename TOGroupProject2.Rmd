@@ -120,7 +120,7 @@ log_train <- train(as.factor(Attrition_Flag1) ~ .+
             preProcess = c("center","scale")
             )
 log_train
-log_pred <-predict(log_train, credit_test, type = "prob")
+log_pred <-predict(log_train, credit_test)
 ```
 
 ## KNN Train
@@ -196,7 +196,7 @@ dt_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method = 
                   tuneGrid = dt_grid)
 
 dt_train
-dt_pred <- predict(dt_train, credit_test, type = "prob")
+dt_pred <- predict(dt_train, credit_test)
 
 #dt_train_pred <- predict(dt_train, credit_test)
 #table(dt_train_pred, credit_norm$Attrition_Flag1)
