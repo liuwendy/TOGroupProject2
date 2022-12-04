@@ -88,6 +88,8 @@ credit_norm$Attrition_Flag0 <- NULL
 
 ## Splitting train and test
 
+As we have more than 10000 observation in the original dataset, we decided to first split our data into train and test, in a 50:50 ratio. The primary reason for this step is to avoid over-fitting which will occur if we train and test on the same dataset. To clarify, since both the train and test datasets will still contain a high amount of observations, it will not affect our the accuracy of our later procedures when using trainControl and stack modeling. 
+
 ```{r}
 test_set <- sample(1:nrow(credit_norm), nrow(credit_norm)/2)
 
@@ -104,6 +106,10 @@ credit_test <- credit_norm[test_set,]
 #credit_train_labels <- credit_norm[-test_set, "Attrition_Flag1"]
 #credit_test_labels <- credit_norm[test_set, "Attrition_Flag1"]
 ```
+
+## Training different models using Caret
+
+For the procedures below, we will be using the Caret package as it allow us to more conveniently modify each different model we're building by simply editing the "method". Besides, we will be using "trainControl" to perform cross-validation, and for all models we've tested and chose to use cv= 10 as we believe it provides the best efficiency and accuracy at the same time. 
 
 ## Regression Train
 
@@ -183,6 +189,7 @@ svm_pred <-predict(svm_train, credit_test)
 
 ## Decision Tree Train
 
+As part of our multiple models, we included Decision Tree, a supervised learning algorithm that characterized each variables and split them into different nodes, and repeating that process until our desire parameter is met. Behaving very much as a tree that we plant in soil, the tests on each attribute are represented at the nodes, the outcome of this procedure is represented at the branches, and the class labels are represented at the leaf nodes (sourced from geeksforgeeks.org). Apart from that, one advantages of using DT is such that we are able to tune the meta parameter trials, model, and winnow. On top of that, we chose to use the function "C5.0" over "rpart" to perform our DT model as it provides a higher accuracy (although it will require longer time to run) and it is known to perform better when stacked up against other model. Ofcourse, if needed, it will provide a clear graphical representation that illustrates the importance of each characteristics so that their relationships could be interpreted. 
 ```{r}
 library(caret)
 dt_ctrl <- trainControl(method = "cv", number = 10,
