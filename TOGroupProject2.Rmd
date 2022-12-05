@@ -85,10 +85,9 @@ credit_norm <- as.data.frame(lapply(credit_random, normalize))
 credit_norm$Attrition_Flag0 <- NULL
 ```
 
-
 ## Splitting train and test
 
-As we have more than 10000 observation in the original dataset, we decided to first split our data into train and test, in a 50:50 ratio. The primary reason for this step is to avoid over-fitting which will occur if we train and test on the same dataset. To clarify, since both the train and test datasets will still contain a high amount of observations, it will not affect our the accuracy of our later procedures when using trainControl and stack modeling. 
+As we have more than 10000 observation in the original data set, we decided to first split our data into train and test, in a 50:50 ratio. The primary reason for this step is to avoid over-fitting which will occur if we train and test on the same data set. To clarify, since both the train and test data sets will still contain a high amount of observations, it will not affect our the accuracy of our later procedures when using trainControl and stack modeling. 
 
 ```{r}
 test_set <- sample(1:nrow(credit_norm), nrow(credit_norm)/2)
@@ -111,22 +110,63 @@ credit_test <- credit_norm[test_set,]
 
 For the procedures below, we will be using the Caret package as it allow us to more conveniently modify each different model we're building by simply editing the "method". Besides, we will be using "trainControl" to perform cross-validation, and for all models we've tested and chose to use cv= 10 as we believe it provides the best efficiency and accuracy at the same time. 
 
-## Regression Train
+## Regression GLM
+
+The logistic regression model is very useful in identifying which predictors are most accurate and impactful when trying to estimate the response variable, attrition. The results above can be interpreted as follows. Any predictors with p-values less than 0.05 can be considered statistically significant. The intercept for any of these variables is the change in the log-odds of attrition per one unit of increase in that variable.
+Some interactions are included in the formula for this logistic regression model. These interactions were found by looking at the summary of the glm version of logistic regression. Statistically significant variables were used in many different combinations of interactions, and after several runs the three interactions that maximized Kappa were Marital_Status1-Total_Trans_Ct, Total_Relationship_Count-Contacts_Count_12_mon, and Total_Trans_Amt-Total_Trans_Ct. The kappa increase for the GLM version of logistic regression from the basic model to the improved model with interactions are shown below. The kappa value increased from 0.6227 to 0.6853.
 
 ```{r}
 library(caret)
-log_ctrl <- trainControl(method="cv", number=10)
-log_train <- train(as.factor(Attrition_Flag1) ~ .+
-                      Marital_Status1*Total_Trans_Ct + 
-                      Total_Relationship_Count*Contacts_Count_12_mon +
-                      Total_Trans_Amt*Total_Trans_Ct, 
-            data = credit_train, method = "glm", 
-            metric = "Kappa",
-            trControl = log_ctrl,
-            preProcess = c("center","scale")
+
+base_logreg <- glm(Attrition_Flag1 ~ ., data = credit_train, family = "binomial")
+
+summary(base_logreg)
+
+base_logreg_prob <- predict(base_logreg, credit_test, type = "response")
+
+base_logreg_pred <- as.factor(ifelse(base_logreg_prob > 0.5, 1, 0))
+
+confusionMatrix(as.factor(credit_test$Attrition_Flag1), base_logreg_pred)
+
+improved_logreg <- glm(Attrition_Flag1 ~ . + 
+                               Marital_Status1*Total_Trans_Ct + 
+                               Total_Relationship_Count*Contacts_Count_12_mon + 
+                               Total_Trans_Amt*Total_Trans_Ct,
+                             data = credit_train,
+                             family = "binomial")
+
+summary(improved_logreg)
+
+improved_logreg_prob <- predict(improved_logreg, credit_test, type = "response")
+
+improved_logreg_pred <- as.factor(ifelse(improved_logreg_prob > 0.5, 1, 0))
+
+confusionMatrix(as.factor(credit_test$Attrition_Flag1), improved_logreg_pred)
+```
+
+## Regression Train
+
+From the results above, we can see that this is a fairly accurate model with a 92 percent accuracy and 0.6866 Kappa on the train data. The significance of the included interactions are explained below.
+Total_Trans_Ct lowers response because a good customer would often use the card, except for Marital_Status1 which corresponds to being married.
+Contacts_Count_12_mon raises response, because the bank is having more issues with the customer, except when combined with Total_Relationship_Count because then the bank would need to contact them more about the different products the customer owns.
+Total_Trans_Amt raises the response because a customer likely to churn could spend a lot quickly, but when combined with Total_Trans_Ct, it will be lower if the customer is making a large number of smaller transactions instead of a few very large ones.
+
+```{r}
+library(caret)
+logreg_ctrl <- trainControl(method="cv", number=10)
+
+logreg_train <- train(as.factor(Attrition_Flag1) ~ . + 
+                        Marital_Status1*Total_Trans_Ct + 
+                        Total_Relationship_Count*Contacts_Count_12_mon + 
+                        Total_Trans_Amt*Total_Trans_Ct, 
+                      data = credit_train, method = "glm", 
+                      metric = "Kappa", 
+                      trControl = logreg_ctrl, 
+                      preProcess = c("center","scale")
             )
-log_train
-log_pred <-predict(log_train, credit_test)
+
+logreg_train
+logreg_pred <- predict(logreg_train, credit_test)
 ```
 
 ## KNN Train
@@ -154,6 +194,7 @@ confusionMatrix(as.factor(credit_test$Attrition_Flag1), knn_pred)
 ```
 
 ## ANN Train
+
 ```{r}
 #We are using the cv method of resampling and we will be doing this 10 times for the training data
 ann_ctrl <- trainControl(method = "cv", number = 10)
@@ -242,7 +283,7 @@ ranger_pred <-predict(ranger_train, credit_test)
 
 ## Single Data Frame
 ```{r}
-all <- data.frame(log_pred, knn_pred, ann_pred, svm_pred, dt_pred, ranger_pred, credit_test$Attrition_Flag1)
+all <- data.frame(logreg_pred, knn_pred, ann_pred, svm_pred, dt_pred, ranger_pred, credit_test$Attrition_Flag1)
 ```
 
 ## Error
