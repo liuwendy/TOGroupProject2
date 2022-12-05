@@ -131,6 +131,8 @@ log_pred <-predict(log_train, credit_test)
 
 ## KNN Train
 
+We included a KNN model due to its advantage of not having to tune several parameters but rather
+just one, k-value. A KNN model first separates data points into several classes to predict the class of a new sample data point based on the number given as the k-value. 
 ```{r}
 library(caret)
 
@@ -189,7 +191,7 @@ svm_pred <-predict(svm_train, credit_test)
 
 ## Decision Tree Train
 
-As part of our multiple models, we included Decision Tree, a supervised learning algorithm that characterized each variables and split them into different nodes, and repeating that process until our desire parameter is met. Behaving very much as a tree that we plant in soil, the tests on each attribute are represented at the nodes, the outcome of this procedure is represented at the branches, and the class labels are represented at the leaf nodes (sourced from geeksforgeeks.org). Apart from that, one advantages of using DT is such that we are able to tune the meta parameter trials, model, and winnow. On top of that, we chose to use the function "C5.0" over "rpart" to perform our DT model as it provides a higher accuracy (although it will require longer time to run) and it is known to perform better when stacked up against other model. Ofcourse, if needed, it will provide a clear graphical representation that illustrates the importance of each characteristics so that their relationships could be interpreted. 
+As part of our multiple models, we included Decision Tree, a supervised learning algorithm that characterized each variables and split them into different nodes, and repeating that process until our desire parameter is met. Behaving very much as a tree that we plant in soil, the tests on each attribute are represented at the nodes, the outcome of this procedure is represented at the branches, and the class labels are represented at the leaf nodes (sourced from geeksforgeeks.org). Apart from that, one advantages of using DT is such that we are able to tune the meta parameter trials, model, and winnow. On top of that, we chose to use the function "C5.0" over "rpart" to perform our DT model as it provides a higher accuracy (although it will require longer time to run) and it is known to perform better when stacked up against other model. Of course, if needed, it will provide a clear graphical representation that illustrates the importance of each characteristics so that their relationships could be interpreted. 
 ```{r}
 library(caret)
 dt_ctrl <- trainControl(method = "cv", number = 10,
