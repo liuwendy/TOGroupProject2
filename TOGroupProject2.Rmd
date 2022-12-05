@@ -132,7 +132,7 @@ log_pred <-predict(log_train, credit_test)
 ## KNN Train
 
 We included a KNN model due to its advantage of not having to tune several parameters but rather
-just one, k-value. A KNN model first separates data points into several classes to predict the class of a new sample data point based on the number given as the k-value. 
+just one, k-value. A KNN model first separates data points into several classes to predict the class of a new sample data point based on the number given as the k-value. The train function below will go through multiple k-values to find the one that gives the best Kappa value.
 ```{r}
 library(caret)
 
@@ -273,3 +273,7 @@ CrossTable(credit_test1$credit_test.Attrition_Flag1, stacked_pred,
            dnn = c('actual yyes', 'predicted yyes'))
 confusionMatrix(as.factor(stacked_pred), as.factor(credit_test1$credit_test.Attrition_Flag1), positive = "1")
 ```
+
+
+## Conclusion 
+Out of all the models created our best model would be our stacked model. 
