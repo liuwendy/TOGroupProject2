@@ -172,7 +172,8 @@ logreg_pred <- predict(logreg_train, credit_test)
 ## KNN Train
 
 We included a KNN model due to its advantage of not having to tune several parameters but rather
-just one, k-value. A KNN model first separates data points into several classes to predict the class of a new sample data point based on the number given as the k-value. The train function below will go through multiple k-values to find the one that gives the best Kappa value.
+just one, k-value. A KNN model first separates data points into several classes to predict the class of a new sample data point based on the number given as the k-value. The train function below will go through multiple k-values to find the one that gives the best Kappa value. The downside though is that it is computationally inefficient and sensitive to noise in the data. Therefore it would not be a good idea to solely base predictions off this model but it does however have its advantages and that can be taken into consideration.
+
 ```{r}
 library(caret)
 
@@ -235,6 +236,7 @@ svm_pred <-predict(svm_train, credit_test)
 ## Decision Tree Train
 
 As part of our multiple models, we included Decision Tree, a supervised learning algorithm that characterized each variables and split them into different nodes, and repeating that process until our desire parameter is met. Behaving very much as a tree that we plant in soil, the tests on each attribute are represented at the nodes, the outcome of this procedure is represented at the branches, and the class labels are represented at the leaf nodes (sourced from geeksforgeeks.org). Apart from that, one advantages of using DT is such that we are able to tune the meta parameter trials, model, and winnow. On top of that, we chose to use the function "C5.0" over "rpart" to perform our DT model as it provides a higher accuracy (although it will require longer time to run) and it is known to perform better when stacked up against other model. Of course, if needed, it will provide a clear graphical representation that illustrates the importance of each characteristics so that their relationships could be interpreted. 
+
 ```{r}
 library(caret)
 dt_ctrl <- trainControl(method = "cv", number = 10,
@@ -317,4 +319,25 @@ confusionMatrix(as.factor(stacked_pred), as.factor(credit_test1$credit_test.Attr
 
 
 ## Conclusion 
-Out of all the models created our best model would be our stacked model. 
+Out of all the models created our best model would be our stacked model. Below are the results of the before and after.
+
+Before: Accepting everyone
+- # Retained Customers = 8,500
+- # Attrited Customer = 1,627
+- Profit from One Retained Customer = $180
+- Cost of One Attrited Customer = $750
+- Profit from Retained Customers = $1,530,000
+- Cost of Attrited Customers = $1,220,250
+- Total Profit = $309,750
+
+After: Applying our model
+- # Retained Customers = 8,227
+- # Attrited Customer = 193
+- Profit from One Retained Customer = $180
+- Cost of One Attrited Customer = $750
+- Profit from Retained Customers = $1,480,860
+- Cost of Attrited Customers = $144,750
+- Total Profit = $1,336,110
+
+Note: the number of retained and attrited customers were scaled to match the same number of total customers as in the “before” scenario.
+
