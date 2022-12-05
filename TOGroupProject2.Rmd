@@ -174,6 +174,8 @@ ann_pred <- predict(ann_train, credit_test)
 
 ## SVM Train
 
+The SVM model is a highly used industry-standard for data that requires a boundary to be created (called a hyperplane) between two classes for the purpose of prediction. For data that is linearly separable, a Hard-Margin SVM can provide the optimal hyperplane because it maximizes the distance between all points, provided the data is linearly separable. However, linearly separable data is impossible to find in the real world, so the Soft-Margin SVM can be used to create a hyperplane that takes into account a penalty hyperparameter (C) to find the optimal boundary. The train function below will go through multiple C values to find the penalty that best raises the Kappa while creating an accurate hyperplane.
+
 ```{r}
 svm_control <- trainControl(method = "cv", number = 10)
 svm_grid <- expand.grid(C=c(1, 5, 7, 9, 10, 15, 20))
@@ -216,6 +218,8 @@ dt_pred <- predict(dt_train, credit_test)
 ```
 
 ## Random Forest Train
+
+The last single-level model we wanted to implement comes from a class of Machine Learning called ensemble models. That means it takes a bunch of smaller models that may not have high accuracies to find a larger model that does. The Random Forest is a culmination of smaller and weaker Decision Trees that split only on one feature. Because many of these trees are put together in an "ensemble", the many trees give to the name Random Forest. The goal of this train is to find the best Random Forest by changing the mtry parameter to get the highest Kappa for the classification model.
 
 ```{r}
 ranger_ctrl <- trainControl(method = "cv", number = 10)
