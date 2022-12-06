@@ -198,7 +198,7 @@ confusionMatrix(as.factor(credit_test$Attrition_Flag1), knn_pred)
 
 ## ANN Train
 
-An ANN is used here to add more prediction accuracy due to its ability to predict much more complex relationships between data easily. Despite the much longer runtime for the ANN as compared to other models in this project, it seems to significantly affect the overall stacked model. 
+An ANN is used here to add more prediction accuracy due to its ability to predict much more complex relationships between data easily. Despite the much longer runtime for the ANN as compared to other models in this project, it seems to significantly affect the overall stacked model. We use the cv  method of resampling, doing this 10 times for the training data. Then, we create a tuning grid, keeping in mind the size and decay, to prevent overfitting. Then, we finally train this on the Attrition Flag data from the "credit_train" dataframe with the neural network model, using Kappa values for optimal model selection. We also use the control set created earlier
 
 ```{r}
 #We are using the cv method of resampling and we will be doing this 10 times for the training data
