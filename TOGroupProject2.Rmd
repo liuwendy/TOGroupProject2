@@ -83,6 +83,8 @@ credit_random <- creditmm[sample(nrow(creditmm)),]
 
 credit_norm <- as.data.frame(lapply(credit_random, normalize))
 credit_norm$Attrition_Flag0 <- NULL
+
+str(credit_norm)
 ```
 
 
