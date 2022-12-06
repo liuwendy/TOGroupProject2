@@ -196,6 +196,8 @@ confusionMatrix(as.factor(credit_test$Attrition_Flag1), knn_pred)
 
 ## ANN Train
 
+An ANN is used here to add more prediction accuracy due to its ability to predict much more complex relationships between data easily. Despite the much longer runtime for the ANN as compared to other models in this project, it seems to significantly affect the overal stacked model. 
+
 ```{r}
 #We are using the cv method of resampling and we will be doing this 10 times for the training data
 ann_ctrl <- trainControl(method = "cv", number = 10)
