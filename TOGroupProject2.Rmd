@@ -2,7 +2,12 @@
 title: "TOGroupProject2"
 author: "Wendy Liu, Mack Khoo, Nelvin Vincent, TJ Striblen, & Nihal Kurki"
 date: "2022-10-27"
-output: html_document
+output:
+  html_document:
+    toc: true
+    theme: readable
+    highlight: tango
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
@@ -10,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Problem
+
 Dataset from: https://www.kaggle.com/datasets/sakshigoyal7/credit-card-customers
 This dataset consists of 10,000 customers mentioning their age, salary, marital_status, credit card limit, credit card category, etc.(nearly 18 features). The dataset only consists of 16.07% of customers who have churned.
 
@@ -18,6 +24,7 @@ Business Problem: A business manager of a consumer credit card bank is facing th
 Our group wants to predict which credit card customers are more likely to churn. Churn prediction means detecting which customers are likely to leave a service or to cancel a subscription to a service. It is a critical prediction for many businesses because acquiring new clients often costs more than retaining existing ones.
 
 ## Description of Data
+
 * CLIENTNUM: Client number; unique identifier for a customer holding the account.
 * Attrition_Flag: Customer activity; 0 if account is closed.
 * Customer_Age: Customer age (in years).
@@ -40,11 +47,12 @@ Our group wants to predict which credit card customers are more likely to churn.
 * Total_Ct_Chng_Q4_Q1: The change in transaction count (Q4 over Q1).
 * Avg_Utilization_Ratio: How much a customer currently owes divided by the credit limit (in %).
 
-## Downloading and Prepping Data
+## Data Exploration
 
-To clean up the data we wanted to first make multiple variables that are either unavailable to us prior to looking at customer attrition (such as the naive bayes classifier) or variables that have no use in predicting attrition (the client number). The data was able to factor the non-numerical variables such as "Attrition_Flag", "Education_Level", "Marital_Status", "Income_Category", & "Card_Category" while the rest remained numeric and not as a factor. One thing we found interesting when exploring the dataset is that the attrited customer percentage is only around 16% which will make it harder to predict, but not at all impossible. Of course we will also need to normalize many of the numerical variables as Credit Limit and Dependent Count are on very different scales. And after an initial logistic regression model, we found that dependent count, income, and months with the bank or months of inactivity hold high correlations to credit card churn.
+To clean up the data we wanted to first remove variables that are either unavailable to us prior to looking at customer attrition (such as the naive bayes classifier) or variables that have no use in predicting attrition (the client number). The data was able to factor the non-numerical variables such as "Attrition_Flag", "Education_Level", "Marital_Status", "Income_Category", & "Card_Category" while the rest remained numeric and not as a factor. One thing we found interesting when exploring the data set is that the attrited customer percentage is only around 16% which will make it harder to predict, but not at all impossible. Of course we will also need to normalize many of the numerical variables as Credit Limit and Dependent Count are on very different scales. And after an initial logistic regression model, we found that dependent count, income, and months with the bank or months of inactivity hold high correlations to credit card churn.
 
-## Data Cleaning
+### Downloading and Cleaning the Data
+
 ```{r}
 credit <- read.csv("BankChurners.csv", stringsAsFactors = TRUE)
 
@@ -68,10 +76,10 @@ credit$Marital_Status <- factor(credit$Marital_Status, levels = c("Single", "Mar
 
 summary(credit)
 str(credit)
-
 ```
 
-## Normalize the data
+### Normalizing the data
+
 ```{r}
 normalize <- function(x) {
   return ((x - min(x)) / (max(x) - min(x)))
@@ -87,6 +95,14 @@ credit_norm$Attrition_Flag0 <- NULL
 str(credit_norm)
 ```
 
+### Initial Logistic Regression
+
+```{r}
+initial_logreg <- glm(Attrition_Flag ~ ., data = credit, family = "binomial")
+summary(initial_logreg)
+```
+
+
 ## Splitting train and test
 
 As we have more than 10000 observation in the original data set, we decided to first split our data into train and test, in a 50:50 ratio. The primary reason for this step is to avoid over-fitting which will occur if we train and test on the same data set. To clarify, since both the train and test data sets will still contain a high amount of observations, it will not affect our the accuracy of our later procedures when using trainControl and stack modeling. 
@@ -94,25 +110,17 @@ As we have more than 10000 observation in the original data set, we decided to f
 ```{r}
 test_set <- sample(1:nrow(credit_norm), nrow(credit_norm)/2)
 
-# Create a train set and test set
-#First the predictors - all columns except the Attrition_Flag1 column
-
 credit_train <- credit_norm[-test_set,]
 credit_test <- credit_norm[test_set,]
-
-#credit_train <- credit_norm[-test_set, -match("Attrition_Flag1",names(credit_norm))]
-#credit_test <- credit_norm[test_set, -match("Attrition_Flag1",names(credit_norm))]
-
-#Now the response (aka Labels) - only the Attrition_Flag1 column
-#credit_train_labels <- credit_norm[-test_set, "Attrition_Flag1"]
-#credit_test_labels <- credit_norm[test_set, "Attrition_Flag1"]
 ```
 
 ## Training different models using Caret
 
 For the procedures below, we will be using the Caret package as it allow us to more conveniently modify each different model we're building by simply editing the "method". Besides, we will be using "trainControl" to perform cross-validation, and for all models we've tested and chose to use cv= 10 as we believe it provides the best efficiency and accuracy at the same time. 
 
-## Regression GLM
+## Logistic Regression
+
+### Regression GLM
 
 The logistic regression model is very useful in identifying which predictors are most accurate and impactful when trying to estimate the response variable, attrition. The results above can be interpreted as follows. Any predictors with p-values less than 0.05 can be considered statistically significant. The intercept for any of these variables is the change in the log-odds of attrition per one unit of increase in that variable.
 Some interactions are included in the formula for this logistic regression model. These interactions were found by looking at the summary of the glm version of logistic regression. Statistically significant variables were used in many different combinations of interactions, and after several runs the three interactions that maximized Kappa were Marital_Status1-Total_Trans_Ct, Total_Relationship_Count-Contacts_Count_12_mon, and Total_Trans_Amt-Total_Trans_Ct. The kappa increase for the GLM version of logistic regression from the basic model to the improved model with interactions are shown below. The kappa value increased from 0.6227 to 0.6853.
@@ -121,14 +129,12 @@ Some interactions are included in the formula for this logistic regression model
 library(caret)
 
 base_logreg <- glm(Attrition_Flag1 ~ ., data = credit_train, family = "binomial")
-
 summary(base_logreg)
 
 base_logreg_prob <- predict(base_logreg, credit_test, type = "response")
-
 base_logreg_pred <- as.factor(ifelse(base_logreg_prob > 0.5, 1, 0))
-
 confusionMatrix(as.factor(credit_test$Attrition_Flag1), base_logreg_pred)
+
 
 improved_logreg <- glm(Attrition_Flag1 ~ . + 
                                Marital_Status1*Total_Trans_Ct + 
@@ -136,17 +142,14 @@ improved_logreg <- glm(Attrition_Flag1 ~ . +
                                Total_Trans_Amt*Total_Trans_Ct,
                              data = credit_train,
                              family = "binomial")
-
 summary(improved_logreg)
 
 improved_logreg_prob <- predict(improved_logreg, credit_test, type = "response")
-
 improved_logreg_pred <- as.factor(ifelse(improved_logreg_prob > 0.5, 1, 0))
-
 confusionMatrix(as.factor(credit_test$Attrition_Flag1), improved_logreg_pred)
 ```
 
-## Regression Train
+### Regression Train
 
 From the results above, we can see that this is a fairly accurate model with a 92 percent accuracy and 0.6866 Kappa on the train data. The significance of the included interactions are explained below.
 Total_Trans_Ct lowers response because a good customer would often use the card, except for Marital_Status1 which corresponds to being married.
@@ -154,7 +157,9 @@ Contacts_Count_12_mon raises response, because the bank is having more issues wi
 Total_Trans_Amt raises the response because a customer likely to churn could spend a lot quickly, but when combined with Total_Trans_Ct, it will be lower if the customer is making a large number of smaller transactions instead of a few very large ones.
 
 ```{r}
+set.seed(12345)
 library(caret)
+
 logreg_ctrl <- trainControl(method="cv", number=10)
 
 logreg_train <- train(as.factor(Attrition_Flag1) ~ . + 
@@ -164,123 +169,127 @@ logreg_train <- train(as.factor(Attrition_Flag1) ~ . +
                       data = credit_train, method = "glm", 
                       metric = "Kappa", 
                       trControl = logreg_ctrl, 
-                      preProcess = c("center","scale")
-            )
+                      preProcess = c("center","scale"))
 
 logreg_train
 logreg_pred <- predict(logreg_train, credit_test)
 ```
 
-## KNN Train
+## K Nearest Neigbors
 
 We included a KNN model due to its advantage of not having to tune several parameters but rather
 just one, k-value. A KNN model first separates data points into several classes to predict the class of a new sample data point based on the number given as the k-value. The train function below will go through multiple k-values to find the one that gives the best Kappa value. The downside though is that it is computationally inefficient and sensitive to noise in the data. Therefore it would not be a good idea to solely base predictions off this model but it does however have its advantages and that can be taken into consideration.
 
 ```{r}
+set.seed(12345)
 library(caret)
 
 knn_ctrl <- trainControl(method = "cv", number = 10)
 knn_grid <- expand.grid(k = c(1, 5, 7, 9, 10, 15, 20))
 
-knn_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method = "knn",
-           metric = "Kappa",
-           trControl = knn_ctrl,
-           preProcess = c("center","scale"), 
-           tuneLength = 20,
-           tuneGrid = knn_grid
-           )
+knn_train <- train(as.factor(Attrition_Flag1) ~ ., 
+                   data = credit_train, 
+                   method = "knn", 
+                   metric = "Kappa", 
+                   trControl = knn_ctrl, 
+                   preProcess = c("center","scale"), 
+                   tuneLength = 20, 
+                   tuneGrid = knn_grid)
 
 knn_train
 knn_pred <-predict(knn_train, credit_test)
-
-confusionMatrix(as.factor(credit_test$Attrition_Flag1), knn_pred)
 ```
 
-## ANN Train
+## Artificial Neural Networks
 
 An ANN is used here to add more prediction accuracy due to its ability to predict much more complex relationships between data easily. Despite the much longer runtime for the ANN as compared to other models in this project, it seems to significantly affect the overall stacked model. We use the cv  method of resampling, doing this 10 times for the training data. Then, we create a tuning grid, keeping in mind the size and decay, to prevent overfitting. Then, we finally train this on the Attrition Flag data from the "credit_train" dataframe with the neural network model, using Kappa values for optimal model selection. We also use the control set created earlier
 
 ```{r}
-#We are using the cv method of resampling and we will be doing this 10 times for the training data
+set.seed(12345)
+library(caret)
+
 ann_ctrl <- trainControl(method = "cv", number = 10)
-#Then using expand.grid to get all combinations
 ann_grid <- expand.grid(.size = c(1, 5, 7, 9, 10, 15, 20),
                         .decay = c(0, 0.01, .1))
-#We have set up for size for the number of units in the layer, and decay to prevent overfitting
-#We are now training this on the Attrition Flag data from the credit_train data using a neural network model, using Kappa values for optimal model selection. We are using the control set and the tuning grid 1 we created earlier
-ann_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method = "nnet",
-          metric = "Kappa",
-          trControl = ann_ctrl,
-          tuneGrid = ann_grid)
+
+ann_train <- train(as.factor(Attrition_Flag1) ~ ., 
+                   data = credit_train, 
+                   method = "nnet", 
+                   metric = "Kappa", 
+                   trControl = ann_ctrl, 
+                   tuneGrid = ann_grid)
 
 ann_train
-
 ann_pred <- predict(ann_train, credit_test)
 ```
 
-## SVM Train
+## Support Vecotr Machine
 
 The SVM model is a highly used industry-standard for data that requires a boundary to be created (called a hyperplane) between two classes for the purpose of prediction. For data that is linearly separable, a Hard-Margin SVM can provide the optimal hyperplane because it maximizes the distance between all points, provided the data is linearly separable. However, linearly separable data is impossible to find in the real world, so the Soft-Margin SVM can be used to create a hyperplane that takes into account a penalty hyperparameter (C) to find the optimal boundary. The train function below will go through multiple C values to find the penalty that best raises the Kappa while creating an accurate hyperplane.
 
 ```{r}
+set.seed(12345)
+library(caret)
+
 svm_control <- trainControl(method = "cv", number = 10)
 svm_grid <- expand.grid(C=c(1, 5, 7, 9, 10, 15, 20))
 
 svm_train <- train(as.factor(Attrition_Flag1) ~ ., 
-                data = credit_train,
-                method = "svmLinear",
-                preProcess = c("center", "scale"),
-                trControl = svm_control,
-                metric = "Kappa",
-                tuneGrid = svm_grid)
+                   data = credit_train, 
+                   method = "svmLinear", 
+                   preProcess = c("center", "scale"), 
+                   trControl = svm_control, 
+                   metric = "Kappa", 
+                   tuneGrid = svm_grid)
+
 svm_train
 svm_pred <-predict(svm_train, credit_test)
 ```
 
-## Decision Tree Train
+## Decision Tree
 
 As part of our multiple models, we included Decision Tree, a supervised learning algorithm that characterized each variables and split them into different nodes, and repeating that process until our desire parameter is met. Behaving very much as a tree that we plant in soil, the tests on each attribute are represented at the nodes, the outcome of this procedure is represented at the branches, and the class labels are represented at the leaf nodes (sourced from geeksforgeeks.org). Apart from that, one advantages of using DT is such that we are able to tune the meta parameter trials, model, and winnow. On top of that, we chose to use the function "C5.0" over "rpart" to perform our DT model as it provides a higher accuracy (although it will require longer time to run) and it is known to perform better when stacked up against other model. Of course, if needed, it will provide a clear graphical representation that illustrates the importance of each characteristics so that their relationships could be interpreted. 
 
 ```{r}
+set.seed(12345)
 library(caret)
-dt_ctrl <- trainControl(method = "cv", number = 10,
-                        selectionFunction = "oneSE")
 
+dt_ctrl <- trainControl(method = "cv", number = 10, selectionFunction = "oneSE")
 dt_grid <- expand.grid(.model = "tree",
                        .trials = c(1, 5, 10, 15, 20, 25, 30, 35),
                        .winnow = "FALSE")
 
-dt_train <- train(as.factor(Attrition_Flag1) ~ ., data = credit_train, method = "C5.0",
-                  metric = "Kappa",
-                  trControl = dt_ctrl,
+dt_train <- train(as.factor(Attrition_Flag1) ~ ., 
+                  data = credit_train, 
+                  method = "C5.0", 
+                  metric = "Kappa", 
+                  trControl = dt_ctrl, 
                   tuneGrid = dt_grid)
 
 dt_train
 dt_pred <- predict(dt_train, credit_test)
-
-#dt_train_pred <- predict(dt_train, credit_test)
-#table(dt_train_pred, credit_norm$Attrition_Flag1)
-
-#confusionMatrix(as.factor(credit_norm$Attrition_Flag1), dt_train_pred)
 ```
 
-## Random Forest Train
+## Random Forest
 
 The last single-level model we wanted to implement comes from a class of Machine Learning called ensemble models. That means it takes a bunch of smaller models that may not have high accuracies to find a larger model that does. The Random Forest is a culmination of smaller and weaker Decision Trees that split only on one feature. Because many of these trees are put together in an "ensemble", the many trees give to the name Random Forest. The goal of this train is to find the best Random Forest by changing the mtry parameter to get the highest Kappa for the classification model.
 
 ```{r}
+set.seed(12345)
+library(caret)
+
 ranger_ctrl <- trainControl(method = "cv", number = 10)
-ranger_grid <- expand.grid( mtry = c(2, 3, 4),
-                             min.node.size = c(2, 4, 10),
-                             splitrule = c('extratrees'))
+ranger_grid <- expand.grid(mtry = c(2, 3, 4), 
+                           min.node.size = c(2, 4, 10), 
+                           splitrule = c('extratrees'))
 
 ranger_train <- train(as.factor(Attrition_Flag1) ~ ., 
-                  data = credit_train,
-                  trControl = ranger_ctrl,
-                  preProcess = c("center", "scale"),
-                  metric = "Kappa",
-                  method = "ranger",
-                  tuneGrid = ranger_grid)
+                      data = credit_train, 
+                      trControl = ranger_ctrl, 
+                      preProcess = c("center", "scale"), 
+                      metric = "Kappa", 
+                      method = "ranger", 
+                      tuneGrid = ranger_grid)
 
 ranger_train
 ranger_pred <-predict(ranger_train, credit_test)
@@ -288,17 +297,22 @@ ranger_pred <-predict(ranger_train, credit_test)
 
 
 ## Single Data Frame
+
+All the predictions from the previous base models will be combined into a single data frame. This data frame can later be used to create a stacked model.
 ```{r}
 all <- data.frame(logreg_pred, knn_pred, ann_pred, svm_pred, dt_pred, ranger_pred, credit_test$Attrition_Flag1)
 ```
 
 ## Error
+
+The cost of an attrited customer is \$750 and the profit of a retained customer is \$180. These values can be included in an error cost matrix and applied to the stacked model. Our model will then maximize profit as opposed to accuracy.
 ```{r}
 error_cost <- matrix(c(0, 180, 750, 0), nrow = 2)
 ```
 
-
 ## Stacked Model
+
+The stacked model will use the predictions from each of the base models to create a new decision tree. The decision tree is created using train data (70 percent of the data from the combined data frame) and tested on test data (30 percent of the data from the combined data frame). The plot shows that the stacked model uses the decision tree, ANN, and logistic regression base models.
 ```{r}
 set.seed(12345)
 test_set1 <- sample(1:nrow(all), round(nrow(all)*.3))
@@ -307,7 +321,9 @@ credit_train1 <- all[-test_set1, ]
 credit_test1 <- all[test_set1, ]
 
 library(C50)
-stacked_model <- C5.0(as.factor(credit_test.Attrition_Flag1) ~ ., data=credit_train1, costs = error_cost)
+stacked_model <- C5.0(as.factor(credit_test.Attrition_Flag1) ~ ., 
+                      data=credit_train1, 
+                      costs = error_cost)
 plot(stacked_model)
 
 stacked_pred <- predict(stacked_model, credit_test1)
@@ -315,33 +331,35 @@ stacked_pred <- predict(stacked_model, credit_test1)
 library(gmodels)
 library(caret)
 
-CrossTable(credit_test1$credit_test.Attrition_Flag1, stacked_pred,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
-           dnn = c('actual yyes', 'predicted yyes'))
 confusionMatrix(as.factor(stacked_pred), as.factor(credit_test1$credit_test.Attrition_Flag1), positive = "1")
 ```
 
-
 ## Conclusion 
-Out of all the models created our best model would be our stacked model. Below are the results of the before and after.
+
+Out of all the models created our best model would be our stacked model. Our stacked model produces a 96.64/% accuracy rate and a Kappa of 0.8815. This is much better than any one of the base models.
+
+Below are the financial results of before and after applying our model to credit card customer applications.
 
 Before: Accepting everyone
 - # Retained Customers = 8,500
 - # Attrited Customer = 1,627
-- Profit from One Retained Customer = $180
-- Cost of One Attrited Customer = $750
-- Profit from Retained Customers = $1,530,000
-- Cost of Attrited Customers = $1,220,250
-- Total Profit = $309,750
+- # Rejected Customers = 0
+- Profit from One Retained Customer = \$180
+- Cost of One Attrited Customer = \$750
+- Profit from Retained Customers = \$1,530,000
+- Cost of Attrited Customers = \$1,220,250
+- Total Profit = \$309,750
 
 After: Applying our model
-- # Retained Customers = 8,227
-- # Attrited Customer = 193
-- Profit from One Retained Customer = $180
-- Cost of One Attrited Customer = $750
-- Profit from Retained Customers = $1,480,860
-- Cost of Attrited Customers = $144,750
-- Total Profit = $1,336,110
+- # Retained Customers = 8,054
+- # Attrited Customer = 153
+- # Rejected Customers = 1,920
+- Profit from One Retained Customer = \$180
+- Cost of One Attrited Customer = \$750
+- Profit from Retained Customers = \$1,449,720
+- Cost of Attrited Customers = \$114,750
+- Total Profit = \$1,334,970
 
 Note: the number of retained and attrited customers were scaled to match the same number of total customers as in the “before” scenario.
 
+In conclusion, our model increases profits by \$1,025,220, or 331%. This averages to a $101 increase in profit per potential customer. Applying this model will to the bank will simplify decision-making when looking at credit card customer applications and increase profits by decreasing the amount of credit card churn.
