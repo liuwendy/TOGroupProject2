@@ -295,22 +295,23 @@ ranger_train
 ranger_pred <-predict(ranger_train, credit_test)
 ```
 
+## Second Level Model
 
-## Single Data Frame
+### Single Data Frame
 
 All the predictions from the previous base models will be combined into a single data frame. This data frame can later be used to create a stacked model.
 ```{r}
 all <- data.frame(logreg_pred, knn_pred, ann_pred, svm_pred, dt_pred, ranger_pred, credit_test$Attrition_Flag1)
 ```
 
-## Error
+### Error Cost Matrix
 
 The cost of an attrited customer is \$750 and the profit of a retained customer is \$180. These values can be included in an error cost matrix and applied to the stacked model. Our model will then maximize profit as opposed to accuracy.
 ```{r}
 error_cost <- matrix(c(0, 180, 750, 0), nrow = 2)
 ```
 
-## Stacked Model
+### Stacked Model
 
 The stacked model will use the predictions from each of the base models to create a new decision tree. The decision tree is created using train data (70 percent of the data from the combined data frame) and tested on test data (30 percent of the data from the combined data frame). The plot shows that the stacked model uses the decision tree, ANN, and logistic regression base models.
 ```{r}
@@ -341,23 +342,39 @@ Out of all the models created our best model would be our stacked model. Our sta
 Below are the financial results of before and after applying our model to credit card customer applications.
 
 Before: Accepting everyone
-- # Retained Customers = 8,500
-- # Attrited Customer = 1,627
-- # Rejected Customers = 0
+
+- Number of Retained Customers = 8,500
+
+- Number of Attrited Customer = 1,627
+
+- Number of Rejected Customers = 0
+
 - Profit from One Retained Customer = \$180
+
 - Cost of One Attrited Customer = \$750
+
 - Profit from Retained Customers = \$1,530,000
+
 - Cost of Attrited Customers = \$1,220,250
+
 - Total Profit = \$309,750
 
 After: Applying our model
-- # Retained Customers = 8,054
-- # Attrited Customer = 153
-- # Rejected Customers = 1,920
+
+- Number of Retained Customers = 8,054
+
+- Number of Attrited Customer = 153
+
+- Number of Rejected Customers = 1,920
+
 - Profit from One Retained Customer = \$180
+
 - Cost of One Attrited Customer = \$750
+
 - Profit from Retained Customers = \$1,449,720
+
 - Cost of Attrited Customers = \$114,750
+
 - Total Profit = \$1,334,970
 
 Note: the number of retained and attrited customers were scaled to match the same number of total customers as in the “before” scenario.

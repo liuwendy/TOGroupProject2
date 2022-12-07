@@ -566,11 +566,16 @@ Neigbors</a></li>
 Tree</a></li>
 <li><a href="#random-forest" id="toc-random-forest">Random
 Forest</a></li>
+<li><a href="#second-level-model" id="toc-second-level-model">Second
+Level Model</a>
+<ul>
 <li><a href="#single-data-frame" id="toc-single-data-frame">Single Data
 Frame</a></li>
-<li><a href="#error" id="toc-error">Error</a></li>
+<li><a href="#error-cost-matrix" id="toc-error-cost-matrix">Error Cost
+Matrix</a></li>
 <li><a href="#stacked-model" id="toc-stacked-model">Stacked
 Model</a></li>
+</ul></li>
 <li><a href="#conclusion" id="toc-conclusion">Conclusion</a></li>
 </ul>
 </div>
@@ -4373,23 +4378,25 @@ for the classification model.</p>
 ##  and min.node.size = 2.</code></pre>
 <div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>ranger_pred <span class="ot">&lt;-</span><span class="fu">predict</span>(ranger_train, credit_test)</span></code></pre></div>
 </div>
-<div id="single-data-frame" class="section level2">
-<h2>Single Data Frame</h2>
+<div id="second-level-model" class="section level2">
+<h2>Second Level Model</h2>
+<div id="single-data-frame" class="section level3">
+<h3>Single Data Frame</h3>
 <p>All the predictions from the previous base models will be combined
 into a single data frame. This data frame can later be used to create a
 stacked model.</p>
 <div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>all <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(logreg_pred, knn_pred, ann_pred, svm_pred, dt_pred, ranger_pred, credit_test<span class="sc">$</span>Attrition_Flag1)</span></code></pre></div>
 </div>
-<div id="error" class="section level2">
-<h2>Error</h2>
+<div id="error-cost-matrix" class="section level3">
+<h3>Error Cost Matrix</h3>
 <p>The cost of an attrited customer is $750 and the profit of a retained
 customer is $180. These values can be included in an error cost matrix
 and applied to the stacked model. Our model will then maximize profit as
 opposed to accuracy.</p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>error_cost <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">180</span>, <span class="dv">750</span>, <span class="dv">0</span>), <span class="at">nrow =</span> <span class="dv">2</span>)</span></code></pre></div>
 </div>
-<div id="stacked-model" class="section level2">
-<h2>Stacked Model</h2>
+<div id="stacked-model" class="section level3">
+<h3>Stacked Model</h3>
 <p>The stacked model will use the predictions from each of the base
 models to create a new decision tree. The decision tree is created using
 train data (70 percent of the data from the combined data frame) and
@@ -4444,6 +4451,7 @@ ANN, and logistic regression base models.</p>
 ##        &#39;Positive&#39; Class : 1               
 ## </code></pre>
 </div>
+</div>
 <div id="conclusion" class="section level2">
 <h2>Conclusion</h2>
 <p>Out of all the models created our best model would be our stacked
@@ -4451,16 +4459,28 @@ model. Our stacked model produces a 96.64/% accuracy rate and a Kappa of
 0.8815. This is much better than any one of the base models.</p>
 <p>Below are the financial results of before and after applying our
 model to credit card customer applications.</p>
-<p>Before: Accepting everyone - # Retained Customers = 8,500 - #
-Attrited Customer = 1,627 - # Rejected Customers = 0 - Profit from One
-Retained Customer = $180 - Cost of One Attrited Customer = $750 - Profit
-from Retained Customers = $1,530,000 - Cost of Attrited Customers =
-$1,220,250 - Total Profit = $309,750</p>
-<p>After: Applying our model - # Retained Customers = 8,054 - # Attrited
-Customer = 153 - # Rejected Customers = 1,920 - Profit from One Retained
-Customer = $180 - Cost of One Attrited Customer = $750 - Profit from
-Retained Customers = $1,449,720 - Cost of Attrited Customers = $114,750
-- Total Profit = $1,334,970</p>
+<p>Before: Accepting everyone</p>
+<ul>
+<li><p>Number of Retained Customers = 8,500</p></li>
+<li><p>Number of Attrited Customer = 1,627</p></li>
+<li><p>Number of Rejected Customers = 0</p></li>
+<li><p>Profit from One Retained Customer = $180</p></li>
+<li><p>Cost of One Attrited Customer = $750</p></li>
+<li><p>Profit from Retained Customers = $1,530,000</p></li>
+<li><p>Cost of Attrited Customers = $1,220,250</p></li>
+<li><p>Total Profit = $309,750</p></li>
+</ul>
+<p>After: Applying our model</p>
+<ul>
+<li><p>Number of Retained Customers = 8,054</p></li>
+<li><p>Number of Attrited Customer = 153</p></li>
+<li><p>Number of Rejected Customers = 1,920</p></li>
+<li><p>Profit from One Retained Customer = $180</p></li>
+<li><p>Cost of One Attrited Customer = $750</p></li>
+<li><p>Profit from Retained Customers = $1,449,720</p></li>
+<li><p>Cost of Attrited Customers = $114,750</p></li>
+<li><p>Total Profit = $1,334,970</p></li>
+</ul>
 <p>Note: the number of retained and attrited customers were scaled to
 match the same number of total customers as in the “before”
 scenario.</p>
